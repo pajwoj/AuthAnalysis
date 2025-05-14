@@ -1,6 +1,5 @@
 package pl.pajwoj.security;
 
-import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.val;
 import org.springframework.context.annotation.Bean;
@@ -8,12 +7,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
 import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
-
-import java.util.HashMap;
-import java.util.Map;
+import pl.pajwoj.responses.ErrorResponse;
 
 import static org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter.Directive.COOKIES;
 
@@ -21,34 +20,37 @@ import static org.springframework.security.web.header.writers.ClearSiteDataHeade
 @EnableWebSecurity
 public class SessionSecurityConfig {
     @Bean
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/login", "/login", "/", "/api/logout").permitAll()
+                        .requestMatchers("/api/login", "/api/logout", "/api/user", "api/test").permitAll()
+                        .requestMatchers("/api/protected").hasRole("ADMIN")
                         .anyRequest().authenticated())
 
                 .sessionManagement(session -> session
                         .maximumSessions(1)
                         .expiredSessionStrategy((event) -> {
                             val response = event.getResponse();
-                            Map<String, String> jsonResponse = new HashMap<>();
-                            jsonResponse.put("error", "SESSION_EXPIRED");
-                            jsonResponse.put("message", "Session expired! Log in again. Redirecting to homepage...");
 
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
-                            response.getWriter().write(new Gson().toJson(jsonResponse));
+
+                            response.getWriter().write(ErrorResponse.unauthorizedJson("SESSION_EXPIRED", "Session expired! Log in again. Redirecting to homepage..."));
                         })
                 )
 
                 .formLogin(form -> form
-                        .loginPage("/login")
                         .loginProcessingUrl("/api/login")
-                        .defaultSuccessUrl("/", true)
-                        .failureUrl("/?error=true")
-                        .permitAll())
+                        .permitAll()
+                )
 
                 .logout(logout -> logout.
                         logoutUrl("/api/logout")
@@ -59,7 +61,6 @@ public class SessionSecurityConfig {
                         })
                         .permitAll()
                 )
-
         ;
 
         return http.build();

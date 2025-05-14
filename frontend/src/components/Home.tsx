@@ -1,4 +1,5 @@
 import {Link} from 'react-router-dom';
+import CurrentUserDisplay from "./CurrentUserDisplay.tsx";
 
 export default function Home() {
     return (
@@ -17,6 +18,8 @@ export default function Home() {
                     PROTECTED
                 </button>
             </Link>
+
+            <CurrentUserDisplay/>
         </div>
     );
 }
