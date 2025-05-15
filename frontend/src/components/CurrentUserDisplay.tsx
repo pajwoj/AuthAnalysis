@@ -1,26 +1,8 @@
 import {useEffect, useState} from 'react';
 import axios, {type AxiosResponse} from 'axios';
-
-interface ErrorResponse {
-    timestamp: string;
-    error: string;
-    message: string;
-}
-
-interface UserResponse {
-    timestamp: string;
-    email: string;
-    roles: string[];
-}
-
-const client = axios.create({
-    baseURL: '/api',
-    withCredentials: true,
-    headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-    }
-});
+import type {ErrorResponse} from "../interfaces/ErrorResponse.tsx";
+import type {UserResponse} from "../interfaces/UserResponse.tsx";
+import client from "../axios/axiosClient.tsx";
 
 export default function CurrentUserDisplay() {
     const [user, setUser] = useState<UserResponse | null>(null);

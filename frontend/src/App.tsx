@@ -3,6 +3,7 @@ import {Toaster} from "react-hot-toast";
 import Login from "./components/Login";
 import Home from "./components/Home";
 import Protected from "./components/Protected";
+import Logout from "./components/Logout.tsx";
 
 export default function App() {
     return (
@@ -12,9 +13,10 @@ export default function App() {
                     <Route path="/" element={<Home/>}/>
                     <Route path="/login" element={<Login/>}/>
                     <Route path="/protected" element={<Protected/>}/>
+                    <Route path="/logout" element={<Logout/>}/>
                 </Routes>
             </BrowserRouter>
-            <Toaster position="bottom-right"/>
+            <Toaster position="top-center"/>
         </>
     );
 }
