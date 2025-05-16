@@ -29,17 +29,17 @@ public class User implements UserDetails, Serializable {
     private String password;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole role;
+    private UserAuthority authority;
 
-    public User(String email, String password, UserRole role) {
+    public User(String email, String password, UserAuthority authority) {
         this.email = email;
         this.password = password;
-        this.role = role;
+        this.authority = authority;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(role.toString()));
+        return Collections.singletonList(new SimpleGrantedAuthority(authority.toString()));
     }
 
     @Override

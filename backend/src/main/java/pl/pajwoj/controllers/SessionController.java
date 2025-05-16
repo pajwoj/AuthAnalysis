@@ -24,4 +24,9 @@ public class SessionController {
     public ResponseEntity<?> login(@RequestBody UserDTO userDTO, HttpServletRequest request) {
         return userService.login(userDTO, request);
     }
+
+    @GetMapping("/protected")
+    public ResponseEntity<?> secret() {
+        return userService.secret();
+    }
 }

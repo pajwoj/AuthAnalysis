@@ -38,7 +38,7 @@ public class ErrorResponse {
                 .body(Map.of(
                         "timestamp", LocalDateTime.now().toString(),
                         "error", "NOT_FOUND",
-                        "message", "User with email: " + email + "not found"
+                        "message", "User with email: " + email + " not found"
                 ));
     }
 
@@ -49,7 +49,7 @@ public class ErrorResponse {
                 .body(Map.of(
                         "timestamp", LocalDateTime.now().toString(),
                         "error", "ALREADY_EXISTS",
-                        "message", "User with email: " + email + "already exists"
+                        "message", "User with email: " + email + " already exists"
                 ));
     }
 
@@ -61,6 +61,17 @@ public class ErrorResponse {
                         "timestamp", LocalDateTime.now().toString(),
                         "error", "EMPTY_FIELDS",
                         "message", "Fill all required fields"
+                ));
+    }
+
+    public static ResponseEntity<?> forbidden() {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN.value())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now().toString(),
+                        "error", "FORBIDDEN",
+                        "message", "You don't have access to this resource"
                 ));
     }
 }

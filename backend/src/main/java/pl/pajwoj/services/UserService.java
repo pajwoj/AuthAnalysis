@@ -6,13 +6,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pl.pajwoj.dtos.UserDTO;
 import pl.pajwoj.models.User;
-import pl.pajwoj.models.UserRole;
+import pl.pajwoj.models.UserAuthority;
 import pl.pajwoj.repositories.UserRepository;
 import pl.pajwoj.responses.ErrorResponse;
 import pl.pajwoj.responses.UserResponse;
@@ -77,7 +78,7 @@ public class UserService {
         User u = userRepository.save(new User(
                 userDTO.getEmail(),
                 passwordEncoder.encode(userDTO.getPassword()),
-                UserRole.USER
+                UserAuthority.USER
         ));
 
         return UserResponse.register(u);
@@ -93,9 +94,18 @@ public class UserService {
         User u = userRepository.save(new User(
                 userDTO.getEmail(),
                 passwordEncoder.encode(userDTO.getPassword()),
-                UserRole.ADMIN
+                UserAuthority.SECRET
         ));
 
         return UserResponse.register(u);
+    }
+
+    public ResponseEntity<?> secret() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority("SECRET")))
+            return UserResponse.auth(auth);
+
+        return ErrorResponse.forbidden();
     }
 }

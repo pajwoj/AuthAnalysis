@@ -1,6 +1,6 @@
 package pl.pajwoj.models;
 
-public enum UserRole {
+public enum UserAuthority {
     USER,
-    ADMIN
+    SECRET
 }
