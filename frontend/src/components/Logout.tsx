@@ -2,7 +2,7 @@ import {useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import client from '../axios/axiosClient';
 import axios from 'axios';
-import type {ErrorResponse} from '../interfaces/ErrorResponse';
+import type {APIResponse} from '../interfaces/APIResponse.tsx';
 
 interface LogoutSuccessResponse {
     message?: string;
@@ -25,7 +25,7 @@ export default function Logout() {
             } catch (error: unknown) {
                 let errorMessage = 'An unknown error occurred';
 
-                if (axios.isAxiosError<ErrorResponse>(error)) {
+                if (axios.isAxiosError<APIResponse>(error)) {
                     if (error.response?.data.message) {
                         errorMessage = error.response.data.message;
                     } else {

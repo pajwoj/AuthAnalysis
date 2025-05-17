@@ -2,12 +2,12 @@ import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import client from '../axios/axiosClient';
 import axios from 'axios';
-import type {ErrorResponse} from '../interfaces/ErrorResponse';
+import type {APIResponse} from '../interfaces/APIResponse.tsx';
 import type {UserResponse} from "../interfaces/UserResponse.tsx";
 
 export default function Protected() {
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<ErrorResponse | null>(null);
+    const [error, setError] = useState<APIResponse | null>(null);
     const [data, setData] = useState<UserResponse | null>(null);
     const navigate = useNavigate();
 
@@ -18,7 +18,7 @@ export default function Protected() {
                 setData(response.data);
                 setLoading(false);
             } catch (error: unknown) {
-                if (axios.isAxiosError<ErrorResponse>(error)) {
+                if (axios.isAxiosError<APIResponse>(error)) {
                     if (error.response?.status === 403) {
                         // Forbidden - user is authenticated but not an admin
                         const state = {

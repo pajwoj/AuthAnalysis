@@ -1,12 +1,12 @@
 import {useEffect, useState} from 'react';
 import axios, {type AxiosResponse} from 'axios';
-import type {ErrorResponse} from "../interfaces/ErrorResponse.tsx";
+import type {APIResponse} from "../interfaces/APIResponse.tsx";
 import type {UserResponse} from "../interfaces/UserResponse.tsx";
 import client from "../axios/axiosClient.tsx";
 
 export default function CurrentUserDisplay() {
     const [user, setUser] = useState<UserResponse | null>(null);
-    const [error, setError] = useState<ErrorResponse | null>(null);
+    const [error, setError] = useState<APIResponse | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
@@ -16,7 +16,7 @@ export default function CurrentUserDisplay() {
             })
 
             .catch((error: unknown) => {
-                if (axios.isAxiosError<ErrorResponse>(error)) {
+                if (axios.isAxiosError<APIResponse>(error)) {
                     if (error.response) {
                         setError((error.response.data))
                     } else {

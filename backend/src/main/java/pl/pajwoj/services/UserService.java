@@ -15,7 +15,7 @@ import pl.pajwoj.dtos.UserDTO;
 import pl.pajwoj.models.User;
 import pl.pajwoj.models.UserAuthority;
 import pl.pajwoj.repositories.UserRepository;
-import pl.pajwoj.responses.ErrorResponse;
+import pl.pajwoj.responses.APIResponse;
 import pl.pajwoj.responses.UserResponse;
 
 import java.util.Optional;
@@ -36,7 +36,7 @@ public class UserService {
         Optional<User> optionalUser = userRepository.findByEmail(userDTO.getEmail());
 
         if (optionalUser.isEmpty()) {
-            return ErrorResponse.userNotFoundResponse(userDTO.getEmail());
+            return APIResponse.userNotFoundResponse(userDTO.getEmail());
         }
 
         try {
@@ -52,9 +52,9 @@ public class UserService {
 
             return UserResponse.auth(authentication);
         } catch (BadCredentialsException e) {
-            return ErrorResponse.unauthorizedResponse("INVALID_CREDENTIALS", "Invalid email or password");
+            return APIResponse.unauthorizedResponse("INVALID_CREDENTIALS", "Invalid email or password");
         } catch (Exception e) {
-            return ErrorResponse.unauthorizedResponse("AUTHENTICATION_FAILED", "Authentication failed: " + e.getMessage());
+            return APIResponse.unauthorizedResponse("AUTHENTICATION_FAILED", "Authentication failed: " + e.getMessage());
         }
     }
 
@@ -62,7 +62,7 @@ public class UserService {
         SecurityContext context = SecurityContextHolder.getContext();
 
         if (context == null || context.getAuthentication() == null || !context.getAuthentication().isAuthenticated() || "anonymousUser".equals(context.getAuthentication().getPrincipal()))
-            return ErrorResponse.unauthorizedResponse("MISSING_SESSION", "You are not logged in");
+            return APIResponse.unauthorizedResponse("MISSING_SESSION", "You are not logged in");
 
         Authentication auth = context.getAuthentication();
         return UserResponse.auth(auth);
@@ -70,10 +70,10 @@ public class UserService {
 
     public ResponseEntity<?> register(UserDTO userDTO) {
         if (userDTO.getEmail() == null || userDTO.getPassword() == null)
-            return ErrorResponse.emptyFields();
+            return APIResponse.emptyFields();
 
         if (userRepository.existsByEmail(userDTO.getEmail()))
-            return ErrorResponse.userAlreadyExists(userDTO.getEmail());
+            return APIResponse.userAlreadyExists(userDTO.getEmail());
 
         User u = userRepository.save(new User(
                 userDTO.getEmail(),
@@ -86,10 +86,10 @@ public class UserService {
 
     public ResponseEntity<?> registerAdmin(UserDTO userDTO) {
         if (userDTO.getEmail() == null || userDTO.getPassword() == null)
-            return ErrorResponse.emptyFields();
+            return APIResponse.emptyFields();
 
         if (userRepository.existsByEmail(userDTO.getEmail()))
-            return ErrorResponse.userAlreadyExists(userDTO.getEmail());
+            return APIResponse.userAlreadyExists(userDTO.getEmail());
 
         User u = userRepository.save(new User(
                 userDTO.getEmail(),
@@ -106,6 +106,6 @@ public class UserService {
         if (auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority("SECRET")))
             return UserResponse.auth(auth);
 
-        return ErrorResponse.forbidden();
+        return APIResponse.forbidden();
     }
 }

@@ -29,4 +29,9 @@ public class SessionController {
     public ResponseEntity<?> secret() {
         return userService.secret();
     }
+
+    @PostMapping("/csrf")
+    public void csrf() {
+        //only to generate a csrf token
+    }
 }

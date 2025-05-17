@@ -9,4 +9,14 @@ const client = axios.create({
     }
 });
 
+client.defaults.xsrfCookieName = 'XSRF-TOKEN';
+client.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
+
+client.interceptors.request.use(async (config) => {
+    if (!document.cookie.includes('XSRF-TOKEN')) {
+        await axios.post('/api/csrf', {}, {withCredentials: true});
+    }
+    return config;
+});
+
 export default client;

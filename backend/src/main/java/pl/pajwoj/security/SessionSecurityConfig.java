@@ -12,11 +12,14 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
-import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
-import pl.pajwoj.responses.ErrorResponse;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import pl.pajwoj.responses.APIResponse;
 
-import static org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter.Directive.COOKIES;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -32,13 +35,31 @@ public class SessionSecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(List.of("GET", "POST"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .ignoringRequestMatchers("/api/csrf"))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/login", "/api/logout", "/api/user", "api/test").permitAll()
+                        .requestMatchers("/api/login", "/api/logout", "/api/user", "api/csrf").permitAll()
                         .requestMatchers("/api/protected").hasAuthority("SECRET")
                         .anyRequest().authenticated())
 
@@ -49,20 +70,21 @@ public class SessionSecurityConfig {
 
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
-                            response.getWriter().write(ErrorResponse.unauthorizedJson("SESSION_EXPIRED", "Session expired! Log in again. Redirecting to homepage..."));
+                            response.getWriter().write(APIResponse.jsonString("SESSION_EXPIRED", "Session expired! Log in again. Redirecting to homepage..."));
                         })
                 )
 
                 .formLogin(AbstractHttpConfigurer::disable)
 
-                .logout(logout -> logout.
-                        logoutUrl("/api/logout")
-                        .addLogoutHandler(new HeaderWriterLogoutHandler(new ClearSiteDataHeaderWriter(COOKIES)))
+                .logout(logout -> logout
+                        .logoutUrl("/api/logout")
+                        .invalidateHttpSession(true)
                         .logoutSuccessHandler((request, response, auth) -> {
+                            response.setHeader("Clear-Site-Data", "\"cookies\"");
                             response.setStatus(HttpServletResponse.SC_OK);
-                            response.getWriter().write("Logout successful! Redirecting to homepage...");
+                            response.setContentType("application/json");
+                            response.getWriter().write(APIResponse.jsonString("", "Logout successful"));
                         })
-                        .permitAll()
                 )
         ;
 

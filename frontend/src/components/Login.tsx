@@ -3,12 +3,12 @@ import {useNavigate} from "react-router-dom";
 import type {UserDTO} from "../interfaces/UserDTO.tsx";
 import client from "../axios/axiosClient.tsx";
 import axios from "axios";
-import type {ErrorResponse} from "../interfaces/ErrorResponse.tsx";
+import type {APIResponse} from "../interfaces/APIResponse.tsx";
 
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState<ErrorResponse | null>(null);
+    const [error, setError] = useState<APIResponse | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -25,7 +25,7 @@ export default function Login() {
             await client.post("/login", JSON.stringify(user));
             await navigate("/");
         } catch (error: unknown) {
-            if (axios.isAxiosError<ErrorResponse>(error)) {
+            if (axios.isAxiosError<APIResponse>(error)) {
                 if (error.response) {
                     setError(error.response.data);
                 } else {

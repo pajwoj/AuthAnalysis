@@ -9,7 +9,17 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ErrorResponse {
+public class APIResponse {
+    public static String jsonString(String errorMessage, String message) {
+        Map<String, String> json = new HashMap<>();
+
+        json.put("timestamp", LocalDateTime.now().toString());
+        json.put("error", errorMessage);
+        json.put("message", message);
+
+        return new Gson().toJson(json);
+    }
+
     public static ResponseEntity<?> unauthorizedResponse(String statusMessage, String message) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED.value())
@@ -19,16 +29,6 @@ public class ErrorResponse {
                         "error", statusMessage,
                         "message", message
                 ));
-    }
-
-    public static String unauthorizedJson(String statusMessage, String message) {
-        Map<String, String> json = new HashMap<>();
-
-        json.put("timestamp", LocalDateTime.now().toString());
-        json.put("error", statusMessage);
-        json.put("message", message);
-
-        return new Gson().toJson(json);
     }
 
     public static ResponseEntity<?> userNotFoundResponse(String email) {
