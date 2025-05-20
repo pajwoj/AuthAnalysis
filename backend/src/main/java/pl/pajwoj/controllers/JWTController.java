@@ -1,20 +1,20 @@
 package pl.pajwoj.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 import pl.pajwoj.dtos.UserDTO;
 import pl.pajwoj.services.UserService;
 
-@ConditionalOnProperty(name = "auth.type", havingValue = "session")
+@ConditionalOnProperty(name = "auth.type", havingValue = "jwt")
 @RestController
 @RequestMapping("/api")
-public class SessionController {
+public class JWTController {
     private final UserService userService;
 
-    public SessionController(UserService userService) {
+    public JWTController(UserService userService) {
         this.userService = userService;
     }
 
@@ -23,19 +23,23 @@ public class SessionController {
         return userService.getCurrentUser();
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserDTO userDTO, HttpServletRequest request) {
-        return userService.sessionLogin(userDTO, request);
-    }
-
     @GetMapping("/protected")
     public ResponseEntity<?> secret() {
         return userService.secret();
     }
 
-    @GetMapping("/csrf")
-    public ResponseEntity<?> csrf(HttpServletRequest request) {
-        CsrfToken csrf = (CsrfToken) request.getAttribute("_csrf");
-        return ResponseEntity.ok(csrf.getToken());
+    @PostMapping("/jwt")
+    public ResponseEntity<?> jwt(HttpServletRequest request) {
+        return userService.jwt(request);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody UserDTO userDTO, HttpServletResponse response) {
+        return userService.JWTLogin(userDTO, response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        return userService.JWTLogout(response);
     }
 }

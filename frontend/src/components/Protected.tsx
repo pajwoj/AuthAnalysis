@@ -37,7 +37,7 @@ export default function Protected() {
                                 type: 'error' as const,
                             }
                         };
-                        await navigate('/login', {state});
+                        await navigate('/', {state});
                         return;
                     } else {
                         setError(error.response?.data ?? {

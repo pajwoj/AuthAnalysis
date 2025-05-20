@@ -1,7 +1,6 @@
 package pl.pajwoj.security;
 
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.val;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,22 +9,27 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import pl.pajwoj.responses.APIResponse;
+import pl.pajwoj.jwt.JWTAuthenticationEntryPoint;
+import pl.pajwoj.jwt.JWTAuthenticationFilter;
 
 import java.util.List;
 
-@ConditionalOnProperty(name = "auth.type", havingValue = "session")
+@ConditionalOnProperty(name = "auth.type", havingValue = "jwt")
 @Configuration
 @EnableWebSecurity
-public class SessionSecurityConfig {
+@RequiredArgsConstructor
+public class JWTSecurityConfig {
+    private final JWTAuthenticationFilter jwtAuthenticationFilter;
+    private final JWTAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -41,7 +45,7 @@ public class SessionSecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN", "XSRF-TOKEN"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
@@ -55,41 +59,24 @@ public class SessionSecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                        .ignoringRequestMatchers("/api/csrf"))
+                .csrf(AbstractHttpConfigurer::disable)
+
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint))
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/api/login", "/api/logout", "/api/user", "/api/csrf", "/api/config").permitAll()
+                        .requestMatchers("/api/login", "/api/user", "/api/config", "/api/logout").permitAll()
                         .requestMatchers("/api/protected").hasAuthority("SECRET")
                         .anyRequest().authenticated())
 
                 .sessionManagement(session -> session
-                        .maximumSessions(1)
-                        .expiredSessionStrategy((event) -> {
-                            val response = event.getResponse();
-
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType("application/json");
-                            response.getWriter().write(APIResponse.jsonString("SESSION_EXPIRED", "Session expired! Log in again. Redirecting to homepage..."));
-                        })
-                )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
 
-                .logout(logout -> logout
-                        .logoutUrl("/api/logout")
-                        .invalidateHttpSession(true)
-                        .logoutSuccessHandler((request, response, auth) -> {
-                            response.setHeader("Clear-Site-Data", "\"cookies\"");
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            response.setContentType("application/json");
-                            response.getWriter().write(APIResponse.jsonString("", "Logout successful"));
-                        })
-                )
-        ;
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

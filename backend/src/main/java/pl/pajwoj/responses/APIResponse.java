@@ -64,6 +64,17 @@ public class APIResponse {
                 ));
     }
 
+    public static ResponseEntity<?> invalidToken() {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST.value())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now().toString(),
+                        "error", "INVALID_TOKEN",
+                        "message", "Token is invalid or expired"
+                ));
+    }
+
     public static ResponseEntity<?> forbidden() {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN.value())
