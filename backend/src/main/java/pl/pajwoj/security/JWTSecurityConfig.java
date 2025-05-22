@@ -19,6 +19,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import pl.pajwoj.jwt.JWTAuthenticationEntryPoint;
 import pl.pajwoj.jwt.JWTAuthenticationFilter;
+import pl.pajwoj.oauth.GoogleOAuthCredentials;
 
 import java.util.List;
 
@@ -29,6 +30,7 @@ import java.util.List;
 public class JWTSecurityConfig {
     private final JWTAuthenticationFilter jwtAuthenticationFilter;
     private final JWTAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final GoogleOAuthCredentials googleOAuthCredentials;
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -56,6 +58,8 @@ public class JWTSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        System.out.println(googleOAuthCredentials);
+
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 

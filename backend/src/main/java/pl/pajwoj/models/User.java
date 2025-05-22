@@ -8,10 +8,12 @@ import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 @Setter
 @Getter
@@ -19,7 +21,7 @@ import java.util.Collections;
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
-public class User implements UserDetails, Serializable {
+public class User implements UserDetails, Serializable, OAuth2User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,6 +37,11 @@ public class User implements UserDetails, Serializable {
         this.email = email;
         this.password = password;
         this.authority = authority;
+    }
+
+    @Override
+    public Map<String, Object> getAttributes() {
+        return Map.of("email", email, "authorities", authority.name());
     }
 
     @Override
@@ -65,5 +72,10 @@ public class User implements UserDetails, Serializable {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public String getName() {
+        return email;
     }
 }

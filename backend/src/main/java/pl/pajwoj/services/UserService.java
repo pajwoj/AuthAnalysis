@@ -33,10 +33,10 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final JWTTokenProvider jwtTokenProvider;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, Optional<JWTTokenProvider> jwtTokenProvider) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, Optional<AuthenticationManager> authenticationManager, Optional<JWTTokenProvider> jwtTokenProvider) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
+        this.authenticationManager = authenticationManager.orElse(null);
         this.jwtTokenProvider = jwtTokenProvider.orElse(null);
     }
 
