@@ -1,33 +1,77 @@
 import {Link, useLocation} from 'react-router-dom';
 import CurrentUserDisplay from "./CurrentUserDisplay.tsx";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import toast from "react-hot-toast";
+import type {AuthType} from "../types/AuthType.tsx";
+import {getAuthType} from "../axios/axiosClient.tsx";
 
 export default function Home() {
     const location = useLocation();
+    const [authType, setAuthType] = useState<AuthType>(null);
 
     useEffect(() => {
-        // Safely access the state with proper null checks
+        const fetchAuthType = async () => {
+            const type = await getAuthType();
+            setAuthType(type);
+        };
+
+        void fetchAuthType();
+
         const state = location.state as { toast?: { message: string, type: 'success' | 'error' } } | undefined;
 
         if (state?.toast) {
             const {message, type} = state.toast;
 
-            // Show the toast
             if (type === 'success') {
                 toast.success(message);
             } else {
                 toast.error(message);
             }
 
-            // Create a new state object without the toast, preserving other state
             const newState = {...state};
             delete newState.toast;
 
-            // Update the history state without triggering navigation
             window.history.replaceState(newState, '');
         }
     }, [location.state]);
+
+    if (authType === 'oauth') {
+        return (
+            <div>
+                <h1>Welcome to the Main Page</h1>
+                <p>This page is public. No login required.</p>
+
+                <Link to="/login">
+                    <button type={"button"}>
+                        LOGIN
+                    </button>
+                </Link>
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        window.location.href = "http://localhost:8080/oauth2/authorization/google";
+                    }}
+                >
+                    LOGIN WITH GOOGLE
+                </button>
+
+                <Link to="/protected">
+                    <button type={"button"}>
+                        PROTECTED
+                    </button>
+                </Link>
+
+                <Link to="/logout">
+                    <button type={"button"}>
+                        LOGOUT
+                    </button>
+                </Link>
+
+                <CurrentUserDisplay/>
+            </div>
+        );
+    }
 
     return (
         <div>

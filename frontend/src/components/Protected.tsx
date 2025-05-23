@@ -2,8 +2,8 @@ import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import client from '../axios/axiosClient';
 import axios from 'axios';
-import type {APIResponse} from '../interfaces/APIResponse.tsx';
-import type {UserResponse} from "../interfaces/UserResponse.tsx";
+import type {APIResponse} from '../types/APIResponse.tsx';
+import type {UserResponse} from "../types/UserResponse.tsx";
 
 export default function Protected() {
     const [loading, setLoading] = useState(true);

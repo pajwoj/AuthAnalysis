@@ -22,5 +22,8 @@ public class UserInitializationService {
 
         if (!userRepository.existsByEmail("admin"))
             userService.registerAdmin(new UserDTO("admin", "admin"));
+
+        if (!userRepository.existsByEmail("ninja2115polska@gmail.com"))
+            userService.registerAdmin(new UserDTO("ninja2115polska@gmail.com", "a"));
     }
 }

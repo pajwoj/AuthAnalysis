@@ -2,7 +2,7 @@ import {useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import client from '../axios/axiosClient';
 import axios from 'axios';
-import type {APIResponse} from '../interfaces/APIResponse.tsx';
+import type {APIResponse} from '../types/APIResponse.tsx';
 
 interface LogoutSuccessResponse {
     message?: string;

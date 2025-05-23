@@ -1,0 +1,1 @@
+export type AuthType = "jwt" | "session" | "oauth" | null;

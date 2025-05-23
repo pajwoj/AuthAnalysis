@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import axios, {type AxiosResponse} from 'axios';
-import type {APIResponse} from "../interfaces/APIResponse.tsx";
-import type {UserResponse} from "../interfaces/UserResponse.tsx";
+import type {APIResponse} from "../types/APIResponse.tsx";
+import type {UserResponse} from "../types/UserResponse.tsx";
 import client from "../axios/axiosClient.tsx";
 
 export default function CurrentUserDisplay() {
@@ -35,27 +35,21 @@ export default function CurrentUserDisplay() {
     }, []);
 
     if (loading) {
-        return <div className="text-gray-500">Checking session...</div>;
+        return <div>
+            Checking session...
+        </div>;
     }
 
     if (error) {
-        return (
-            <div className="bg-red-50 p-4 rounded-md border border-red-200">
-                <h3 className="font-medium text-red-800">Session Error</h3>
-                <p className="text-red-600">{error.message}</p>
-                <p className="text-xs text-red-500 mt-2">
-                    {new Date(error.timestamp).toLocaleString()}
-                </p>
-            </div>
-        );
+        return <div>
+            {error.message}
+        </div>;
     }
 
     if (!user) {
-        return (
-            <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
-                <p className="text-yellow-800">No active session</p>
-            </div>
-        );
+        return <div>
+            No active session
+        </div>;
     }
 
     return (
