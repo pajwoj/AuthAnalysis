@@ -1,7 +1,7 @@
 import {type FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import type {UserDTO} from "../types/UserDTO.tsx";
-import client from "../axios/axiosClient.tsx";
+import client from "../services/axiosClient.tsx";
 import axios from "axios";
 import type {APIResponse} from "../types/APIResponse.tsx";
 

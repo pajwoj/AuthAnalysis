@@ -3,7 +3,7 @@ import CurrentUserDisplay from "./CurrentUserDisplay.tsx";
 import {useEffect, useState} from "react";
 import toast from "react-hot-toast";
 import type {AuthType} from "../types/AuthType.tsx";
-import {getAuthType} from "../axios/axiosClient.tsx";
+import {getAuthType} from "../services/axiosClient.tsx";
 
 export default function Home() {
     const location = useLocation();

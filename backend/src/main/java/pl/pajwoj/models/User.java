@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,9 +17,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-@Setter
 @Getter
-@ToString
+@Setter
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
@@ -49,14 +47,16 @@ public class User implements UserDetails, Serializable, OAuth2User, OidcUser {
 
     @Override
     public Map<String, Object> getAttributes() {
-        return Map.of("email", email,
+        return Map.of(
+                "email", email,
                 "sub", email,
-                "authorities", authority.name());
+                "authorities", authority.name()
+        );
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(authority.toString()));
+        return Collections.singletonList(new SimpleGrantedAuthority(authority.name()));
     }
 
     @Override

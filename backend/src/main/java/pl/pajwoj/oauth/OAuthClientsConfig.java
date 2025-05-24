@@ -32,8 +32,8 @@ public class OAuthClientsConfig {
 
     private ClientRegistration githubClientRegistration() {
         return ClientRegistration.withRegistrationId("github")
-                .clientId(githubCredentials.getClient())
-                .clientSecret(githubCredentials.getSecret())
+                .clientId(githubCredentials.getClientId())
+                .clientSecret(githubCredentials.getClientSecret())
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .redirectUri(githubCredentials.getCallback_url())
@@ -48,8 +48,8 @@ public class OAuthClientsConfig {
 
     private ClientRegistration discordClientRegistration() {
         return ClientRegistration.withRegistrationId("discord")
-                .clientId(discordCredentials.getClient())
-                .clientSecret(discordCredentials.getSecret())
+                .clientId(discordCredentials.getClientId())
+                .clientSecret(discordCredentials.getClientSecret())
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .redirectUri(discordCredentials.getCallback_url())
@@ -64,8 +64,8 @@ public class OAuthClientsConfig {
 
     private ClientRegistration gitlabClientRegistration() {
         return ClientRegistration.withRegistrationId("gitlab")
-                .clientId(gitlabCredentials.getClient())
-                .clientSecret(gitlabCredentials.getSecret())
+                .clientId(gitlabCredentials.getClientId())
+                .clientSecret(gitlabCredentials.getClientSecret())
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .redirectUri(gitlabCredentials.getCallback_url())

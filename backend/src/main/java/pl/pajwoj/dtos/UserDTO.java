@@ -1,13 +1,17 @@
 package pl.pajwoj.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
+import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
+@Value
+@Jacksonized
+@Builder
 public class UserDTO {
-    private String email;
-    private String password;
+    @NotBlank(message = "Email cannot be blank")
+    String email;
+
+    @NotBlank(message = "Password cannot be blank")
+    String password;
 }

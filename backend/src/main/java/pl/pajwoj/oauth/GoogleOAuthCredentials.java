@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
-import lombok.ToString;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -18,7 +17,6 @@ import java.util.List;
 @ConditionalOnProperty(name = "auth.type", havingValue = "oauth")
 @Component
 @Getter
-@ToString
 public class GoogleOAuthCredentials {
     private String client_id;
     private String project_id;

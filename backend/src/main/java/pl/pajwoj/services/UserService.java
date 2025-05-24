@@ -3,13 +3,12 @@ package pl.pajwoj.services;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,9 +20,9 @@ import pl.pajwoj.models.User;
 import pl.pajwoj.models.UserAuthority;
 import pl.pajwoj.repositories.UserRepository;
 import pl.pajwoj.responses.APIResponse;
-import pl.pajwoj.responses.UserResponse;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -45,7 +44,10 @@ public class UserService {
         Optional<User> optionalUser = userRepository.findByEmail(userDTO.getEmail());
 
         if (optionalUser.isEmpty()) {
-            return APIResponse.userNotFoundResponse(userDTO.getEmail());
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("User with email: " + userDTO.getEmail() + " not found."));
         }
 
         try {
@@ -59,11 +61,26 @@ public class UserService {
 
             request.getSession(true).setAttribute("SPRING_SECURITY_CONTEXT", sc);
 
-            return UserResponse.auth(authentication);
+            return ResponseEntity
+                    .ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("Login successful", Map.of(
+                            "email", authentication.getName(),
+                            "roles", authentication.getAuthorities()
+                                    .stream()
+                                    .map(GrantedAuthority::getAuthority)
+                                    .toList()
+                    )));
         } catch (BadCredentialsException e) {
-            return APIResponse.unauthorizedResponse("INVALID_CREDENTIALS", "Invalid email or password");
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("Invalid email or password"));
         } catch (Exception e) {
-            return APIResponse.unauthorizedResponse("AUTHENTICATION_FAILED", "Authentication failed: " + e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("Authentication failed"));
         }
     }
 
@@ -72,10 +89,16 @@ public class UserService {
         String token = jwtTokenProvider.resolveToken(request);
 
         if (token != null && !jwtTokenProvider.isTokenExpired(token)) {
-            return ResponseEntity.ok("Token is valid");
+            return ResponseEntity
+                    .ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("Valid token"));
         }
 
-        return APIResponse.invalidToken();
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(APIResponse.of("Invalid token"));
     }
 
     @ConditionalOnProperty(name = "auth.type", havingValue = "jwt")
@@ -83,7 +106,10 @@ public class UserService {
         Optional<User> optionalUser = userRepository.findByEmail(userDTO.getEmail());
 
         if (optionalUser.isEmpty()) {
-            return APIResponse.userNotFoundResponse(userDTO.getEmail());
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("User with email: " + userDTO.getEmail() + " not found."));
         }
 
         try {
@@ -107,13 +133,27 @@ public class UserService {
 
             response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-            return ResponseEntity.ok()
+            return ResponseEntity
+                    .ok()
+                    .contentType(MediaType.APPLICATION_JSON)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt)
-                    .body(jwt);
+                    .body(APIResponse.of("Login successful", Map.of(
+                            "email", authentication.getName(),
+                            "roles", authentication.getAuthorities()
+                                    .stream()
+                                    .map(GrantedAuthority::getAuthority)
+                                    .toList()
+                    )));
         } catch (BadCredentialsException e) {
-            return APIResponse.unauthorizedResponse("INVALID_CREDENTIALS", "Invalid email or password");
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("Invalid email or password"));
         } catch (Exception e) {
-            return APIResponse.unauthorizedResponse("AUTHENTICATION_FAILED", "Authentication failed: " + e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("Authentication failed"));
         }
     }
 
@@ -130,25 +170,45 @@ public class UserService {
         response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         response.setHeader("Clear-Site-Data", "\"cookies\"");
 
-        return ResponseEntity.ok("Logout successful");
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(APIResponse.of("Logout successful"));
     }
 
     public ResponseEntity<?> getCurrentUser() {
         SecurityContext context = SecurityContextHolder.getContext();
 
         if (context == null || context.getAuthentication() == null || !context.getAuthentication().isAuthenticated() || "anonymousUser".equals(context.getAuthentication().getPrincipal()))
-            return APIResponse.unauthorizedResponse("NOT_LOGGED_IN", "You are not logged in");
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("You are not logged in"));
 
-        Authentication auth = context.getAuthentication();
-        return UserResponse.auth(auth);
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(APIResponse.of("Login successful", Map.of(
+                        "email", context.getAuthentication().getName(),
+                        "roles", context.getAuthentication().getAuthorities()
+                                .stream()
+                                .map(GrantedAuthority::getAuthority)
+                                .toList()
+                )));
     }
 
     public ResponseEntity<?> register(UserDTO userDTO) {
         if (userDTO.getEmail() == null || userDTO.getPassword() == null)
-            return APIResponse.emptyFields();
+            return ResponseEntity
+                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("Fill all required fields"));
 
         if (userRepository.existsByEmail(userDTO.getEmail()))
-            return APIResponse.userAlreadyExists(userDTO.getEmail());
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("User with email: " + userDTO.getEmail() + " already exists."));
 
         User u = userRepository.save(new User(
                 userDTO.getEmail(),
@@ -156,15 +216,30 @@ public class UserService {
                 UserAuthority.USER
         ));
 
-        return UserResponse.register(u);
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(APIResponse.of("User registered successfully", Map.of(
+                        "email", u.getEmail(),
+                        "roles", u.getAuthorities()
+                                .stream()
+                                .map(GrantedAuthority::getAuthority)
+                                .toList()
+                )));
     }
 
     public ResponseEntity<?> registerAdmin(UserDTO userDTO) {
         if (userDTO.getEmail() == null || userDTO.getPassword() == null)
-            return APIResponse.emptyFields();
+            return ResponseEntity
+                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("Fill all required fields"));
 
         if (userRepository.existsByEmail(userDTO.getEmail()))
-            return APIResponse.userAlreadyExists(userDTO.getEmail());
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("User with email: " + userDTO.getEmail() + " already exists."));
 
         User u = userRepository.save(new User(
                 userDTO.getEmail(),
@@ -172,15 +247,36 @@ public class UserService {
                 UserAuthority.SECRET
         ));
 
-        return UserResponse.register(u);
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(APIResponse.of("User registered successfully", Map.of(
+                        "email", u.getEmail(),
+                        "roles", u.getAuthorities()
+                                .stream()
+                                .map(GrantedAuthority::getAuthority)
+                                .toList()
+                )));
     }
 
     public ResponseEntity<?> secret() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority("SECRET")))
-            return UserResponse.auth(auth);
+            return ResponseEntity
+                    .ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("Permitted", Map.of(
+                            "email", auth.getName(),
+                            "roles", auth.getAuthorities()
+                                    .stream()
+                                    .map(GrantedAuthority::getAuthority)
+                                    .toList()
+                    )));
 
-        return APIResponse.forbidden();
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(APIResponse.of("Only admins can access this page"));
     }
 }

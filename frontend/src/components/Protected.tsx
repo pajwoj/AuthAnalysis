@@ -1,9 +1,9 @@
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import client from '../axios/axiosClient';
+import client from '../services/axiosClient.tsx';
 import axios from 'axios';
-import type {APIResponse} from '../types/APIResponse.tsx';
-import type {UserResponse} from "../types/UserResponse.tsx";
+import type {APIResponse, UserResponse} from '../types/APIResponse.tsx';
+import {handleAPIError, showToast} from '../services/toastService.tsx';
 
 export default function Protected() {
     const [loading, setLoading] = useState(true);
@@ -17,42 +17,38 @@ export default function Protected() {
                 const response = await client.get<UserResponse>('/protected');
                 setData(response.data);
                 setLoading(false);
+                // Show success toast if there's a message
+                if (response.data.message) {
+                    showToast(response.data.message, 'success');
+                }
             } catch (error: unknown) {
                 if (axios.isAxiosError<APIResponse>(error)) {
                     if (error.response?.status === 403) {
                         // Forbidden - user is authenticated but not an admin
-                        const state = {
-                            toast: {
-                                message: 'You do not have admin permissions to access this page',
-                                type: 'error' as const,
-                            }
-                        };
-                        await navigate('/', {state});
+                        handleAPIError(error);
+                        await navigate('/');
                         return;
                     } else if (error.response?.status === 401) {
                         // Unauthorized - user is not logged in
-                        const state = {
-                            toast: {
-                                message: 'You need to log in to access this page',
-                                type: 'error' as const,
-                            }
-                        };
-                        await navigate('/', {state});
+                        handleAPIError(error);
+                        await navigate('/');
                         return;
                     } else {
-                        setError(error.response?.data ?? {
+                        const errorData = error.response?.data ?? {
                             timestamp: new Date().toISOString(),
-                            error: 'ERROR',
                             message: 'An unexpected error occurred'
-                        });
+                        };
+                        setError(errorData);
+                        handleAPIError(error);
                         setLoading(false);
                     }
                 } else {
-                    setError({
+                    const fallbackError = {
                         timestamp: new Date().toISOString(),
-                        error: 'ERROR',
                         message: error instanceof Error ? error.message : 'Unknown error'
-                    });
+                    };
+                    setError(fallbackError);
+                    handleAPIError(error);
                     setLoading(false);
                 }
             }
@@ -89,8 +85,8 @@ export default function Protected() {
             <h1 className="text-xl font-bold text-green-800 mb-2">Protected Admin Area</h1>
             {data && (
                 <div className="text-green-700">
-                    <p className="mb-2">Welcome, {data.email}!</p>
-                    <p className="mb-4">Role: {data.roles}</p>
+                    <p className="mb-2">Welcome, {data.data?.email}!</p>
+                    <p className="mb-4">Role: {data.data?.roles.join(', ')}</p>
                     <p className="text-xs text-green-600">
                         Access granted at: {new Date(data.timestamp).toLocaleString()}
                     </p>

@@ -1,55 +1,56 @@
 import {useEffect, useState} from 'react';
-import axios, {type AxiosResponse} from 'axios';
-import type {APIResponse} from "../types/APIResponse.tsx";
-import type {UserResponse} from "../types/UserResponse.tsx";
-import client from "../axios/axiosClient.tsx";
+import axios from 'axios';
+import type {APIResponse, UserData, UserResponse} from "../types/APIResponse.tsx";
+import client from "../services/axiosClient.tsx";
 
 export default function CurrentUserDisplay() {
-    const [user, setUser] = useState<UserResponse | null>(null);
-    const [error, setError] = useState<APIResponse | null>(null);
+    const [user, setUser] = useState<UserData | null>(null);
+    const [timestamp, setTimestamp] = useState<string>("");
+    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        client.get("/user")
-            .then((response: AxiosResponse<UserResponse>) => {
-                setUser(response.data);
-            })
+        const fetchUser = async () => {
+            try {
+                const response = await client.get<UserResponse>('/user');
 
-            .catch((error: unknown) => {
-                if (axios.isAxiosError<APIResponse>(error)) {
-                    if (error.response) {
-                        setError((error.response.data))
-                    } else {
-                        console.error('Axios error without response:', error.message);
-                    }
-                } else if (error instanceof Error) {
-                    console.error('Native error:', error.message);
+                if (response.data.data) {
+                    setUser(response.data.data);
+                    setTimestamp(response.data.timestamp);
+                    setError(null);
                 } else {
-                    console.error('Unknown error type:', error);
+                    throw new Error('No user data received');
                 }
-            })
-
-            .finally(() => {
+            } catch (error) {
+                setError(getErrorMessage(error));
+            } finally {
                 setLoading(false);
-            })
+            }
+        };
+
+        void fetchUser();
     }, []);
 
+    const getErrorMessage = (error: unknown): string => {
+        if (axios.isAxiosError<APIResponse>(error)) {
+            return error.response?.data.message ?? 'Request failed';
+        }
+        if (error instanceof Error) {
+            return error.message;
+        }
+        return 'Unknown error occurred';
+    };
+
     if (loading) {
-        return <div>
-            Checking session...
-        </div>;
+        return <div>Checking session...</div>;
     }
 
     if (error) {
-        return <div>
-            {error.message}
-        </div>;
+        return <div>{error}</div>;
     }
 
     if (!user) {
-        return <div>
-            No active session
-        </div>;
+        return <div>No active session</div>;
     }
 
     return (
@@ -63,7 +64,7 @@ export default function CurrentUserDisplay() {
                     <span className="font-medium">Roles:</span> {user.roles.join(', ')}
                 </p>
                 <p className="text-xs text-gray-500 mt-2">
-                    {new Date(user.timestamp).toLocaleString()}
+                    {new Date(timestamp).toLocaleString()}
                 </p>
             </div>
         </div>

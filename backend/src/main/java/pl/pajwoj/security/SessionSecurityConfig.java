@@ -35,8 +35,7 @@ public class SessionSecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/api/login", "/api/logout", "/api/user", "/api/csrf", "/api/config").permitAll()
-                        .requestMatchers("/api/protected").hasAuthority("SECRET")
+                        .requestMatchers("/api/login", "/api/logout", "/api/user", "/api/csrf", "/api/config", "/api/protected").permitAll()
                         .anyRequest().authenticated())
 
                 .sessionManagement(session -> session
@@ -46,7 +45,7 @@ public class SessionSecurityConfig {
 
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
-                            response.getWriter().write(APIResponse.jsonString("SESSION_EXPIRED", "Session expired! Log in again. Redirecting to homepage..."));
+                            response.getWriter().write(APIResponse.json("Session expired! Log in again. Redirecting to homepage..."));
                         })
                 )
 
@@ -59,7 +58,7 @@ public class SessionSecurityConfig {
                             response.setHeader("Clear-Site-Data", "\"cookies\"");
                             response.setStatus(HttpServletResponse.SC_OK);
                             response.setContentType("application/json");
-                            response.getWriter().write(APIResponse.jsonString("", "Logout successful"));
+                            response.getWriter().write(APIResponse.json("Logout successful"));
                         })
                 )
         ;

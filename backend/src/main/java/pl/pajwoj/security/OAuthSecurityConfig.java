@@ -32,8 +32,7 @@ public class OAuthSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/api/user", "/api/config", "/api/logout", "/login/**").permitAll()
+                        .requestMatchers("/api/user", "/api/config", "/api/logout", "/login/oauth2/code/**", "/oauth2/authorization/**").permitAll()
                         .requestMatchers("/api/protected").hasAuthority("SECRET")
                         .anyRequest().authenticated())
 
@@ -47,6 +46,10 @@ public class OAuthSecurityConfig {
                         .successHandler((request, response, authentication) -> {
                             response.sendRedirect("http://localhost:5173/");
                         })
+                        .failureHandler((request, response, exception) -> {
+                            System.out.println("fail!");
+                            response.sendRedirect("http://localhost:5173/");
+                        })
                 )
 
                 .logout(logout -> logout
@@ -58,7 +61,7 @@ public class OAuthSecurityConfig {
                             response.setHeader("Clear-Site-Data", "\"cookies\"");
                             response.setStatus(HttpServletResponse.SC_OK);
                             response.setContentType("application/json");
-                            response.getWriter().write(APIResponse.jsonString("", "Logout successful"));
+                            response.getWriter().write(APIResponse.json("Logout successful"));
                         })
                 )
         ;

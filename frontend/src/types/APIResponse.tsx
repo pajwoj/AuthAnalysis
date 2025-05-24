@@ -1,5 +1,12 @@
-export interface APIResponse {
+export interface APIResponse<T = never> {
     timestamp: string;
-    error: string;
     message: string;
+    data?: T;
 }
+
+export interface UserData {
+    email: string;
+    roles: string[];
+}
+
+export type UserResponse = APIResponse<UserData>;

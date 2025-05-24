@@ -1,88 +1,33 @@
 package pl.pajwoj.responses;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.gson.Gson;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.OffsetDateTime;
 
-public class APIResponse {
-    public static String jsonString(String errorMessage, String message) {
-        Map<String, String> json = new HashMap<>();
+@Value
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@RequiredArgsConstructor
+public class APIResponse<T> {
+    String timestamp = OffsetDateTime.now().toString();
+    String message;
+    T data;
 
-        json.put("timestamp", LocalDateTime.now().toString());
-        json.put("error", errorMessage);
-        json.put("message", message);
-
-        return new Gson().toJson(json);
+    public static APIResponse<Void> of(String message) {
+        return new APIResponse<>(message, null);
     }
 
-    public static ResponseEntity<?> unauthorizedResponse(String statusMessage, String message) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of(
-                        "timestamp", LocalDateTime.now().toString(),
-                        "error", statusMessage,
-                        "message", message
-                ));
+    public static <T> APIResponse<T> of(String message, T data) {
+        return new APIResponse<>(message, data);
     }
 
-    public static ResponseEntity<?> userNotFoundResponse(String email) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND.value())
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of(
-                        "timestamp", LocalDateTime.now().toString(),
-                        "error", "NOT_FOUND",
-                        "message", "User with email: " + email + " not found"
-                ));
+    public static String json(String message) {
+        return new Gson().toJson(of(message));
     }
 
-    public static ResponseEntity<?> userAlreadyExists(String email) {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT.value())
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of(
-                        "timestamp", LocalDateTime.now().toString(),
-                        "error", "ALREADY_EXISTS",
-                        "message", "User with email: " + email + " already exists"
-                ));
-    }
-
-    public static ResponseEntity<?> emptyFields() {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST.value())
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of(
-                        "timestamp", LocalDateTime.now().toString(),
-                        "error", "EMPTY_FIELDS",
-                        "message", "Fill all required fields"
-                ));
-    }
-
-    public static ResponseEntity<?> invalidToken() {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST.value())
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of(
-                        "timestamp", LocalDateTime.now().toString(),
-                        "error", "INVALID_TOKEN",
-                        "message", "Token is invalid or expired"
-                ));
-    }
-
-    public static ResponseEntity<?> forbidden() {
-        return ResponseEntity
-                .status(HttpStatus.FORBIDDEN.value())
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of(
-                        "timestamp", LocalDateTime.now().toString(),
-                        "error", "FORBIDDEN",
-                        "message", "You don't have access to this resource"
-                ));
+    public static <T> String json(String message, T data) {
+        return new Gson().toJson(of(message, data));
     }
 }

@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
-import client from '../axios/axiosClient';
+import client from '../services/axiosClient.tsx';
 import axios from 'axios';
 import type {APIResponse} from '../types/APIResponse.tsx';
 

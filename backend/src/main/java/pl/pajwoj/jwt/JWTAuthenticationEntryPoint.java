@@ -20,6 +20,6 @@ public class JWTAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
-        response.getWriter().write(APIResponse.jsonString("AUTHENTICATION_FAILED", "Authentication failed: " + authException.getMessage()));
+        response.getWriter().write(APIResponse.json("Authentication failed: " + authException.getMessage()));
     }
 }
