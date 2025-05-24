@@ -2,7 +2,6 @@ package pl.pajwoj.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -18,16 +17,16 @@ import java.util.UUID;
 @ConditionalOnProperty(name = "auth.type", havingValue = "oauth")
 @RequiredArgsConstructor
 @Service
-public class OAuthUserServiceImpl extends DefaultOAuth2UserService {
+public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
-    
-    @Lazy
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
+
+        System.out.println(oAuth2User.toString());
 
         return userRepository.findByEmail(oAuth2User.getAttribute("email"))
                 .orElseGet(() -> userRepository.save(new User(

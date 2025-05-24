@@ -8,6 +8,9 @@ import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.io.Serializable;
@@ -21,7 +24,7 @@ import java.util.Map;
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
-public class User implements UserDetails, Serializable, OAuth2User {
+public class User implements UserDetails, Serializable, OAuth2User, OidcUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,6 +36,11 @@ public class User implements UserDetails, Serializable, OAuth2User {
     @Column(nullable = false)
     private UserAuthority authority;
 
+    @Transient
+    private OidcIdToken idToken;
+    @Transient
+    private OidcUserInfo userInfo;
+
     public User(String email, String password, UserAuthority authority) {
         this.email = email;
         this.password = password;
@@ -41,7 +49,9 @@ public class User implements UserDetails, Serializable, OAuth2User {
 
     @Override
     public Map<String, Object> getAttributes() {
-        return Map.of("email", email, "authorities", authority.name());
+        return Map.of("email", email,
+                "sub", email,
+                "authorities", authority.name());
     }
 
     @Override
@@ -77,5 +87,20 @@ public class User implements UserDetails, Serializable, OAuth2User {
     @Override
     public String getName() {
         return email;
+    }
+
+    @Override
+    public Map<String, Object> getClaims() {
+        return getAttributes();
+    }
+
+    @Override
+    public OidcUserInfo getUserInfo() {
+        return userInfo;
+    }
+
+    @Override
+    public OidcIdToken getIdToken() {
+        return idToken;
     }
 }

@@ -56,6 +56,33 @@ export default function Home() {
                     LOGIN WITH GOOGLE
                 </button>
 
+                <button
+                    type="button"
+                    onClick={() => {
+                        window.location.href = "http://localhost:8080/oauth2/authorization/github";
+                    }}
+                >
+                    LOGIN WITH GITHUB
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        window.location.href = "http://localhost:8080/oauth2/authorization/gitlab";
+                    }}
+                >
+                    LOGIN WITH GITLAB
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        window.location.href = "http://localhost:8080/oauth2/authorization/discord";
+                    }}
+                >
+                    LOGIN WITH DISCORD
+                </button>
+
                 <Link to="/protected">
                     <button type={"button"}>
                         PROTECTED
