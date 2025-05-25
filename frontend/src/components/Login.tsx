@@ -2,11 +2,11 @@ import {type FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import type {UserDTO} from "../types/UserDTO.tsx";
 import {login} from "../services/axiosClient.tsx";
+import {showToast} from "../services/toastService.tsx";
 
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -21,9 +21,12 @@ export default function Login() {
 
         try {
             await login(user);
+            showToast("Successfully logged in")
             await navigate("/");
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Unknown error")
+            const error = e instanceof Error ? e.message : "Unknown error";
+            showToast(error, 'error');
+            await navigate("/", {replace: true});
         } finally {
             setLoading(false)
         }
@@ -36,7 +39,6 @@ export default function Login() {
     return (
         <div>
             <h1>Login</h1>
-            <div>{error}</div>
 
             <form onSubmit={onSubmit}>
                 <div>

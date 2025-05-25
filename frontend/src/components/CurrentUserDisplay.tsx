@@ -1,10 +1,10 @@
 import {useEffect, useState} from 'react';
 import type {UserData} from "../types/APIResponse.tsx";
 import {getUser} from "../services/axiosClient.tsx";
+import {showToast} from "../services/toastService.tsx";
 
 export default function CurrentUserDisplay() {
     const [user, setUser] = useState<UserData | null>(null);
-    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
@@ -12,7 +12,8 @@ export default function CurrentUserDisplay() {
             try {
                 setUser(await getUser());
             } catch (e) {
-                setError(e instanceof Error ? e.message : "Unknown error")
+                const error = e instanceof Error ? e.message : "Unknown error";
+                showToast(error, 'error');
             } finally {
                 setLoading(false)
             }
@@ -21,10 +22,6 @@ export default function CurrentUserDisplay() {
 
     if (loading) {
         return <div>Checking session...</div>;
-    }
-
-    if (error) {
-        return <div>{error}</div>;
     }
 
     if (!user) {

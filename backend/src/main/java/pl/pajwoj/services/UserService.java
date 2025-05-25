@@ -85,23 +85,6 @@ public class UserService {
     }
 
     @ConditionalOnProperty(name = "auth.type", havingValue = "jwt")
-    public ResponseEntity<?> jwt(HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-
-        if (token != null && !jwtTokenProvider.isTokenExpired(token)) {
-            return ResponseEntity
-                    .ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(APIResponse.of("Valid token"));
-        }
-
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(APIResponse.of("Invalid token"));
-    }
-
-    @ConditionalOnProperty(name = "auth.type", havingValue = "jwt")
     public ResponseEntity<?> JWTLogin(UserDTO userDTO, HttpServletResponse response) {
         Optional<User> optionalUser = userRepository.findByEmail(userDTO.getEmail());
 

@@ -1,5 +1,5 @@
 import axios, {type AxiosError, type AxiosRequestConfig} from "axios";
-import type {APIResponse, AuthType, CSRFToken, UserData} from "../types/APIResponse.tsx";
+import type {APIResponse, AuthType, UserData} from "../types/APIResponse.tsx";
 import type {UserDTO} from "../types/UserDTO.tsx";
 
 export const client = axios.create({
@@ -49,13 +49,6 @@ export async function getConfig(): Promise<AuthType> {
     })
 }
 
-export async function getCSRF(): Promise<CSRFToken> {
-    return requestWithData<CSRFToken>({
-        method: "GET",
-        url: "/csrf"
-    })
-}
-
 export async function getUser(): Promise<UserData> {
     return requestWithData<UserData>({
         method: "GET",
@@ -92,30 +85,30 @@ export async function logout(): Promise<string> {
     })
 }
 
+const hasCsrfToken = () =>
+    document.cookie.split(";").some(cookie => cookie.trim().startsWith("XSRF-TOKEN="));
+
 export async function init() {
     const config = await getConfig();
 
-    if (config === 'session')
-        setupSessionAuth();
+    if (config === 'session') {
+        client.defaults.xsrfCookieName = "XSRF-TOKEN";
+        client.defaults.xsrfHeaderName = "X-XSRF-TOKEN";
 
-    else if (config === 'jwt')
-        console.log('jwt')
-
-    else if (config === 'oauth')
-        console.log('oauth')
-
-    else
+        if (!hasCsrfToken()) await axios.get("/api/csrf", {withCredentials: true});
+        attachCsrfInterceptor();
+    } else if (config === 'jwt') {
+    } else if (config === 'oauth') {
+    } else {
         console.error('init broken!!')
+    }
 
     return config;
 }
 
-const setupSessionAuth = () => {
-    client.defaults.xsrfCookieName = "XSRF-TOKEN";
-    client.defaults.xsrfHeaderName = "X-XSRF-TOKEN";
-
+const attachCsrfInterceptor = () => {
     client.interceptors.request.use(async (config) => {
-        if (!document.cookie.includes("XSRF-TOKEN")) {
+        if (!hasCsrfToken()) {
             await axios.get("/api/csrf", {withCredentials: true});
         }
         return config;

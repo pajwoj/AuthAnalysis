@@ -1,6 +1,5 @@
 package pl.pajwoj.controllers;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,11 +26,6 @@ public class JWTController {
     @GetMapping(value = "/protected", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> secret() {
         return userService.secret();
-    }
-
-    @PostMapping(value = "/jwt", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> jwt(HttpServletRequest request) {
-        return userService.jwt(request);
     }
 
     @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -22,10 +22,10 @@ public class GitHubOAuthCredentials {
     @PostConstruct
     private void init() {
         try {
-            JsonObject webObject = JsonParser.parseReader(new InputStreamReader(new ClassPathResource("github.json").getInputStream())).getAsJsonObject();
+            JsonObject json = JsonParser.parseReader(new InputStreamReader(new ClassPathResource("github.json").getInputStream())).getAsJsonObject();
 
-            this.clientId = webObject.get("client").getAsString();
-            this.clientSecret = webObject.get("secret").getAsString();
+            this.clientId = json.get("client").getAsString();
+            this.clientSecret = json.get("secret").getAsString();
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to load GitHub OAuth credentials", e);

@@ -1,26 +1,24 @@
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {logout} from "../services/axiosClient.tsx";
 import {showToast} from "../services/toastService.tsx";
 
 export default function Logout() {
     const navigate = useNavigate();
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         void (async () => {
             try {
-                await logout();
+                const message = await logout();
+                showToast(message);
                 await navigate("/");
             } catch (e) {
-                setError(e instanceof Error ? e.message : "Unknown error")
+                const error = e instanceof Error ? e.message : "Unknown error";
+                showToast(error, 'error');
+                await navigate("/", {replace: true});
             }
         })();
     }, [navigate]);
-
-    if (error) {
-        showToast(error, 'error');
-    }
-
+    
     return <div>Logging out...</div>;
 }

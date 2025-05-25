@@ -30,19 +30,19 @@ public class GoogleOAuthCredentials {
     @PostConstruct
     private void init() {
         try {
-            JsonObject webObject = JsonParser.parseReader(new InputStreamReader(new ClassPathResource("google.json").getInputStream())).getAsJsonObject().get("web").getAsJsonObject();
+            JsonObject json = JsonParser.parseReader(new InputStreamReader(new ClassPathResource("google.json").getInputStream())).getAsJsonObject().get("web").getAsJsonObject();
 
-            this.client_id = webObject.get("client_id").getAsString();
-            this.project_id = webObject.get("project_id").getAsString();
-            this.auth_uri = webObject.get("auth_uri").getAsString();
-            this.token_uri = webObject.get("token_uri").getAsString();
-            this.auth_provider_x509_cert_url = webObject.get("auth_provider_x509_cert_url").getAsString();
-            this.client_secret = webObject.get("client_secret").getAsString();
-            this.redirect_uris = webObject.getAsJsonArray("redirect_uris").asList().stream()
+            this.client_id = json.get("client_id").getAsString();
+            this.project_id = json.get("project_id").getAsString();
+            this.auth_uri = json.get("auth_uri").getAsString();
+            this.token_uri = json.get("token_uri").getAsString();
+            this.auth_provider_x509_cert_url = json.get("auth_provider_x509_cert_url").getAsString();
+            this.client_secret = json.get("client_secret").getAsString();
+            this.redirect_uris = json.getAsJsonArray("redirect_uris").asList().stream()
                     .map(JsonElement::getAsString)
                     .toList();
 
-            this.javascript_origins = webObject.getAsJsonArray("javascript_origins").asList().stream()
+            this.javascript_origins = json.getAsJsonArray("javascript_origins").asList().stream()
                     .map(JsonElement::getAsString)
                     .toList();
 
