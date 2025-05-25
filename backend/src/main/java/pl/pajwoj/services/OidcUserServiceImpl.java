@@ -25,8 +25,6 @@ public class OidcUserServiceImpl extends OidcUserService {
     @Override
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
         OidcUser oidcUser = super.loadUser(userRequest);
-        
-        System.out.println(oidcUser.toString());
 
         return userRepository.findByEmail(oidcUser.getEmail())
                 .orElseGet(() -> {

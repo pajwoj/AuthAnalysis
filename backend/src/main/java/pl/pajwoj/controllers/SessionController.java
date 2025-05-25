@@ -39,6 +39,6 @@ public class SessionController {
     @GetMapping(value = "/csrf", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> csrf(HttpServletRequest request) {
         CsrfToken csrf = (CsrfToken) request.getAttribute("_csrf");
-        return ResponseEntity.ok(APIResponse.of(csrf.getToken()));
+        return ResponseEntity.ok(APIResponse.of("csrf", csrf.getToken()));
     }
 }

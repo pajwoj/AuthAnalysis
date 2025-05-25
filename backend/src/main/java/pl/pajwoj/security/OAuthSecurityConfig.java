@@ -32,8 +32,7 @@ public class OAuthSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/user", "/api/config", "/api/logout", "/login/oauth2/code/**", "/oauth2/authorization/**").permitAll()
-                        .requestMatchers("/api/protected").hasAuthority("SECRET")
+                        .requestMatchers("/api/user", "/api/config", "/api/logout", "/api/protected", "/login/oauth2/code/**", "/oauth2/authorization/**").permitAll()
                         .anyRequest().authenticated())
 
                 .formLogin(AbstractHttpConfigurer::disable)

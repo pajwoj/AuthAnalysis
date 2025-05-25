@@ -34,7 +34,6 @@ public class SessionSecurityConfig {
                         .ignoringRequestMatchers("/api/csrf"))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/login", "/api/logout", "/api/user", "/api/csrf", "/api/config", "/api/protected").permitAll()
                         .anyRequest().authenticated())
 

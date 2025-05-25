@@ -34,8 +34,7 @@ public class JWTSecurityConfig {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/login", "/api/user", "/api/config", "/api/logout").permitAll()
-                        .requestMatchers("/api/protected").hasAuthority("SECRET")
+                        .requestMatchers("/api/login", "/api/user", "/api/config", "/api/logout", "/api/protected").permitAll()
                         .anyRequest().authenticated())
 
                 .sessionManagement(session -> session

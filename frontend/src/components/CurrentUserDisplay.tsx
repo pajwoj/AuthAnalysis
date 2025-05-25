@@ -1,45 +1,23 @@
 import {useEffect, useState} from 'react';
-import axios from 'axios';
-import type {APIResponse, UserData, UserResponse} from "../types/APIResponse.tsx";
-import client from "../services/axiosClient.tsx";
+import type {UserData} from "../types/APIResponse.tsx";
+import {getUser} from "../services/axiosClient.tsx";
 
 export default function CurrentUserDisplay() {
     const [user, setUser] = useState<UserData | null>(null);
-    const [timestamp, setTimestamp] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        const fetchUser = async () => {
+        void (async () => {
             try {
-                const response = await client.get<UserResponse>('/user');
-
-                if (response.data.data) {
-                    setUser(response.data.data);
-                    setTimestamp(response.data.timestamp);
-                    setError(null);
-                } else {
-                    throw new Error('No user data received');
-                }
-            } catch (error) {
-                setError(getErrorMessage(error));
+                setUser(await getUser());
+            } catch (e) {
+                setError(e instanceof Error ? e.message : "Unknown error")
             } finally {
-                setLoading(false);
+                setLoading(false)
             }
-        };
-
-        void fetchUser();
+        })();
     }, []);
-
-    const getErrorMessage = (error: unknown): string => {
-        if (axios.isAxiosError<APIResponse>(error)) {
-            return error.response?.data.message ?? 'Request failed';
-        }
-        if (error instanceof Error) {
-            return error.message;
-        }
-        return 'Unknown error occurred';
-    };
 
     if (loading) {
         return <div>Checking session...</div>;
@@ -64,7 +42,7 @@ export default function CurrentUserDisplay() {
                     <span className="font-medium">Roles:</span> {user.roles.join(', ')}
                 </p>
                 <p className="text-xs text-gray-500 mt-2">
-                    {new Date(timestamp).toLocaleString()}
+                    {new Date().toLocaleString()}
                 </p>
             </div>
         </div>

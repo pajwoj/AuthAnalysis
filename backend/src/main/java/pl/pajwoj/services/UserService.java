@@ -197,7 +197,7 @@ public class UserService {
                 )));
     }
 
-    public ResponseEntity<?> register(UserDTO userDTO) {
+    public ResponseEntity<?> register(UserDTO userDTO, UserAuthority authority) {
         if (userDTO.getEmail() == null || userDTO.getPassword() == null)
             return ResponseEntity
                     .status(HttpStatus.UNPROCESSABLE_ENTITY)
@@ -213,38 +213,7 @@ public class UserService {
         User u = userRepository.save(new User(
                 userDTO.getEmail(),
                 passwordEncoder.encode(userDTO.getPassword()),
-                UserAuthority.USER
-        ));
-
-        return ResponseEntity
-                .ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(APIResponse.of("User registered successfully", Map.of(
-                        "email", u.getEmail(),
-                        "roles", u.getAuthorities()
-                                .stream()
-                                .map(GrantedAuthority::getAuthority)
-                                .toList()
-                )));
-    }
-
-    public ResponseEntity<?> registerAdmin(UserDTO userDTO) {
-        if (userDTO.getEmail() == null || userDTO.getPassword() == null)
-            return ResponseEntity
-                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(APIResponse.of("Fill all required fields"));
-
-        if (userRepository.existsByEmail(userDTO.getEmail()))
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(APIResponse.of("User with email: " + userDTO.getEmail() + " already exists."));
-
-        User u = userRepository.save(new User(
-                userDTO.getEmail(),
-                passwordEncoder.encode(userDTO.getPassword()),
-                UserAuthority.SECRET
+                authority
         ));
 
         return ResponseEntity

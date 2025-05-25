@@ -1,14 +1,12 @@
 import {type FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import type {UserDTO} from "../types/UserDTO.tsx";
-import client from "../services/axiosClient.tsx";
-import axios from "axios";
-import type {APIResponse} from "../types/APIResponse.tsx";
+import {login} from "../services/axiosClient.tsx";
 
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState<APIResponse | null>(null);
+    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -22,24 +20,13 @@ export default function Login() {
         }
 
         try {
-            await client.post("/login", JSON.stringify(user));
+            await login(user);
             await navigate("/");
-        } catch (error: unknown) {
-            if (axios.isAxiosError<APIResponse>(error)) {
-                if (error.response) {
-                    setError(error.response.data);
-                } else {
-                    console.error("Axios error without response:", error.message);
-                }
-            } else if (error instanceof Error) {
-                console.error("Native error:", error.message);
-            } else {
-                console.error("Unknown error type:", error);
-            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Unknown error")
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-
     }
 
     const onSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -49,14 +36,13 @@ export default function Login() {
     return (
         <div>
             <h1>Login</h1>
-            {error && <div>{error.message}</div>}
+            <div>{error}</div>
 
             <form onSubmit={onSubmit}>
                 <div>
                     <label htmlFor="email">Email</label>
                     <input
                         id="email"
-                        //type="email"
                         type="text"
                         value={email}
                         onChange={(e) => {

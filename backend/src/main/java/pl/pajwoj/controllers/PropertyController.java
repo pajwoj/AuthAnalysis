@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import pl.pajwoj.responses.APIResponse;
 
 @RestController
 @RequestMapping("/api")
@@ -18,6 +19,6 @@ public class PropertyController {
         return ResponseEntity
                 .ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(authType);
+                .body(APIResponse.of("config", authType));
     }
 }

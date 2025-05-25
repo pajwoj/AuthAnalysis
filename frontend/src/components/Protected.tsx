@@ -1,61 +1,26 @@
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import client from '../services/axiosClient.tsx';
-import axios from 'axios';
-import type {APIResponse, UserResponse} from '../types/APIResponse.tsx';
-import {handleAPIError, showToast} from '../services/toastService.tsx';
+import type {UserData} from '../types/APIResponse.tsx';
+import {getProtected} from "../services/axiosClient.tsx";
 
 export default function Protected() {
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<APIResponse | null>(null);
-    const [data, setData] = useState<UserResponse | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+    const [user, setUser] = useState<UserData | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const checkAccess = async () => {
+        void (async () => {
             try {
-                const response = await client.get<UserResponse>('/protected');
-                setData(response.data);
+                const response: UserData = await getProtected();
+                setUser(response);
+            } catch (e) {
+                setError(e instanceof Error ? e.message : "Unknown error");
+            } finally {
                 setLoading(false);
-                // Show success toast if there's a message
-                if (response.data.message) {
-                    showToast(response.data.message, 'success');
-                }
-            } catch (error: unknown) {
-                if (axios.isAxiosError<APIResponse>(error)) {
-                    if (error.response?.status === 403) {
-                        // Forbidden - user is authenticated but not an admin
-                        handleAPIError(error);
-                        await navigate('/');
-                        return;
-                    } else if (error.response?.status === 401) {
-                        // Unauthorized - user is not logged in
-                        handleAPIError(error);
-                        await navigate('/');
-                        return;
-                    } else {
-                        const errorData = error.response?.data ?? {
-                            timestamp: new Date().toISOString(),
-                            message: 'An unexpected error occurred'
-                        };
-                        setError(errorData);
-                        handleAPIError(error);
-                        setLoading(false);
-                    }
-                } else {
-                    const fallbackError = {
-                        timestamp: new Date().toISOString(),
-                        message: error instanceof Error ? error.message : 'Unknown error'
-                    };
-                    setError(fallbackError);
-                    handleAPIError(error);
-                    setLoading(false);
-                }
             }
-        };
-
-        void checkAccess();
-    }, [navigate]);
+        })();
+    }, []);
 
     if (loading) {
         return <div>Checking access permissions...</div>;
@@ -65,7 +30,7 @@ export default function Protected() {
         return (
             <div className="bg-red-50 p-4 rounded-md border border-red-200">
                 <h1 className="text-xl font-bold text-red-800 mb-2">Access Denied</h1>
-                <p className="text-red-600">{error.message}</p>
+                <p className="text-red-600">{error}</p>
                 <p className="text-sm text-red-500 mt-4">
                     Only administrators can access this protected area.
                 </p>
@@ -83,12 +48,12 @@ export default function Protected() {
     return (
         <div className="bg-green-50 p-6 rounded-md border border-green-200">
             <h1 className="text-xl font-bold text-green-800 mb-2">Protected Admin Area</h1>
-            {data && (
+            {user && (
                 <div className="text-green-700">
-                    <p className="mb-2">Welcome, {data.data?.email}!</p>
-                    <p className="mb-4">Role: {data.data?.roles.join(', ')}</p>
+                    <p className="mb-2">Welcome, {user.email}!</p>
+                    <p className="mb-4">Role: {user.roles.join(', ')}</p>
                     <p className="text-xs text-green-600">
-                        Access granted at: {new Date(data.timestamp).toLocaleString()}
+                        Access granted at: {new Date().toLocaleString()}
                     </p>
                 </div>
             )}

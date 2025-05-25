@@ -3,6 +3,7 @@ package pl.pajwoj.services;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import pl.pajwoj.dtos.UserDTO;
+import pl.pajwoj.models.UserAuthority;
 import pl.pajwoj.repositories.UserRepository;
 
 @Service
@@ -21,21 +22,21 @@ public class UserInitializationService {
             userService.register(UserDTO.builder()
                     .email("a")
                     .password("a")
-                    .build()
+                    .build(), UserAuthority.USER
             );
 
         if (!userRepository.existsByEmail("admin"))
-            userService.registerAdmin(UserDTO.builder()
+            userService.register(UserDTO.builder()
                     .email("admin")
                     .password("admin")
-                    .build()
+                    .build(), UserAuthority.SECRET
             );
 
         if (!userRepository.existsByEmail("pajwoj@gmail.com"))
-            userService.registerAdmin(UserDTO.builder()
+            userService.register(UserDTO.builder()
                     .email("pajwoj@gmail.com")
                     .password("admin")
-                    .build()
+                    .build(), UserAuthority.SECRET
             );
     }
 }
