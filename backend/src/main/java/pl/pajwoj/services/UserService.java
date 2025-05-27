@@ -13,6 +13,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import pl.pajwoj.dtos.UserDTO;
 import pl.pajwoj.jwt.JWTTokenProvider;
@@ -59,7 +60,7 @@ public class UserService {
             SecurityContext sc = SecurityContextHolder.getContext();
             sc.setAuthentication(authentication);
 
-            request.getSession(true).setAttribute("SPRING_SECURITY_CONTEXT", sc);
+            request.getSession(true).setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, sc);
 
             return ResponseEntity
                     .ok()

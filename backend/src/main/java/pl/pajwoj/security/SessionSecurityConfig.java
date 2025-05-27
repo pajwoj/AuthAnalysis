@@ -12,6 +12,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession;
+import org.springframework.session.web.http.CookieSerializer;
+import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.web.cors.CorsConfigurationSource;
 import pl.pajwoj.responses.APIResponse;
 
@@ -19,9 +23,29 @@ import pl.pajwoj.responses.APIResponse;
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
+@EnableSpringHttpSession
 public class SessionSecurityConfig {
 
     private final CorsConfigurationSource corsConfigurationSource;
+
+    @Bean
+    public CookieSerializer cookieSerializer() {
+        DefaultCookieSerializer cookieSerializer = new DefaultCookieSerializer();
+
+        cookieSerializer.setCookieName("SESSIONID");
+        cookieSerializer.setCookiePath("/");
+        cookieSerializer.setUseHttpOnlyCookie(true);
+        cookieSerializer.setUseSecureCookie(true);
+        cookieSerializer.setSameSite("Strict");
+        cookieSerializer.setCookieMaxAge(60 * 60 * 24 * 7);
+
+        return cookieSerializer;
+    }
+
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -39,6 +63,7 @@ public class SessionSecurityConfig {
 
                 .sessionManagement(session -> session
                         .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
                         .expiredSessionStrategy((event) -> {
                             val response = event.getResponse();
 
@@ -46,6 +71,7 @@ public class SessionSecurityConfig {
                             response.setContentType("application/json");
                             response.getWriter().write(APIResponse.json("Session expired! Log in again. Redirecting to homepage..."));
                         })
+                        .sessionRegistry(null)
                 )
 
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -53,6 +79,7 @@ public class SessionSecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/api/logout")
                         .invalidateHttpSession(true)
+                        .deleteCookies("SESSIONID")
                         .logoutSuccessHandler((request, response, auth) -> {
                             response.setHeader("Clear-Site-Data", "\"cookies\"");
                             response.setStatus(HttpServletResponse.SC_OK);
