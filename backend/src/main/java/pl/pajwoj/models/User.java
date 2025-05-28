@@ -1,9 +1,8 @@
 package pl.pajwoj.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,17 +11,15 @@ import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
-public class User implements UserDetails, Serializable, OAuth2User, OidcUser {
+public class User implements UserDetails, OAuth2User, OidcUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

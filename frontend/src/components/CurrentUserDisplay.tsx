@@ -13,7 +13,8 @@ export default function CurrentUserDisplay() {
                 setUser(await getUser());
             } catch (e) {
                 const error = e instanceof Error ? e.message : "Unknown error";
-                showToast(error, 'error');
+                if (error !== "You are not logged in")
+                    showToast(error, 'error');
             } finally {
                 setLoading(false)
             }
