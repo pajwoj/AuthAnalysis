@@ -1,13 +1,11 @@
 package pl.pajwoj.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.pajwoj.dtos.UserDTO;
 import pl.pajwoj.responses.APIResponse;
@@ -17,7 +15,6 @@ import pl.pajwoj.services.UserService;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
-@Validated
 public class SessionController {
     private final UserService userService;
 
@@ -27,7 +24,7 @@ public class SessionController {
     }
 
     @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> login(@RequestBody @Valid UserDTO userDTO, HttpServletRequest request) {
+    public ResponseEntity<?> login(@RequestBody UserDTO userDTO, HttpServletRequest request) {
         return userService.sessionLogin(userDTO, request);
     }
 
