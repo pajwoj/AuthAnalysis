@@ -45,8 +45,8 @@ public class User implements UserDetails, OAuth2User, OidcUser {
     @Override
     public Map<String, Object> getAttributes() {
         return Map.of(
+                "sub", id.toString(),
                 "email", email,
-                "sub", email,
                 "authorities", authority.name()
         );
     }
