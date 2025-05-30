@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import type {UserData} from "../types/APIResponse.tsx";
-import {getUser} from "../services/axiosClient.tsx";
+import {getUser, logout} from "../services/axiosClient.tsx";
 import {showToast} from "../services/toastService.tsx";
 
 export default function CurrentUserDisplay() {
@@ -18,7 +18,27 @@ export default function CurrentUserDisplay() {
                 setLoading(false)
             }
         })();
+
+        const handleLogout = () => {
+            void logoutFunction();
+        };
+
+        window.addEventListener('logout', handleLogout);
+        return () => {
+            window.removeEventListener('logout', handleLogout);
+        };
     }, []);
+
+    const logoutFunction = async () => {
+        try {
+            const message = await logout();
+            setUser(null);
+            showToast(message);
+        } catch (e) {
+            const error = e instanceof Error ? e.message : "Unknown error";
+            showToast(error, 'error');
+        }
+    };
 
     if (loading) {
         return <div>Checking session...</div>;

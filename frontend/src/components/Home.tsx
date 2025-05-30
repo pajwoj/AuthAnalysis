@@ -11,7 +11,7 @@ export default function Home() {
             <div>
                 <h1>Welcome to the Main Page</h1>
                 <p>This page is public. No login required.</p>
-                
+
                 <button
                     type="button"
                     onClick={() => {
@@ -54,11 +54,12 @@ export default function Home() {
                     </button>
                 </Link>
 
-                <Link to="/logout">
-                    <button type={"button"}>
-                        LOGOUT
-                    </button>
-                </Link>
+                <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('logout'))}
+                >
+                    LOGOUT
+                </button>
 
                 <CurrentUserDisplay/>
             </div>
@@ -82,11 +83,12 @@ export default function Home() {
                 </button>
             </Link>
 
-            <Link to="/logout">
-                <button type={"button"}>
-                    LOGOUT
-                </button>
-            </Link>
+            <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('logout'))}
+            >
+                LOGOUT
+            </button>
 
             <CurrentUserDisplay/>
         </div>
