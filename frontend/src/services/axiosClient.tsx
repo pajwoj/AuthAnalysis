@@ -71,7 +71,7 @@ export async function validateJWT(): Promise<string> {
 }
 
 export async function login(user: UserDTO): Promise<UserData> {
-    return requestWithData({
+    return requestWithData<UserData>({
         method: "POST",
         url: "/login",
         data: user
