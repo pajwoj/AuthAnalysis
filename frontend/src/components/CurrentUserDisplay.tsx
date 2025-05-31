@@ -50,7 +50,7 @@ export default function CurrentUserDisplay() {
 
     return (
         <div className="bg-white p-4 rounded-md shadow-sm border">
-            <h3 className="font-medium mb-2">Current Session</h3>
+            <h3 className="font-medium mb-2">Current user</h3>
             <div className="space-y-1 text-sm">
                 <p>
                     <span className="font-medium">Email:</span> {user.email}

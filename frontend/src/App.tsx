@@ -7,6 +7,7 @@ import {useEffect, useState} from "react";
 import {init} from "./services/axiosClient.tsx";
 import type {AuthType} from "./types/APIResponse.tsx";
 import {AuthContext} from "./services/authContextService.tsx";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function App() {
     const [auth, setAuth] = useState<AuthType | null>(null);
