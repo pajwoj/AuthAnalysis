@@ -10,6 +10,20 @@ export const client = axios.create({
     }
 });
 
+let jwtToken: string | null = null;
+
+export const setJwtToken = (token: string) => {
+    jwtToken = token;
+    client.defaults.headers.common.Authorization = `Bearer ${token}`;
+};
+
+export const clearJwtToken = () => {
+    jwtToken = null;
+    delete client.defaults.headers.common.Authorization;
+};
+
+export const getJwtToken = () => jwtToken;
+
 async function requestWithData<T>(config: AxiosRequestConfig): Promise<T> {
     try {
         const response = await client.request<APIResponse<T>>(config);
@@ -63,19 +77,18 @@ export async function getProtected(): Promise<UserData> {
     })
 }
 
-export async function validateJWT(): Promise<string> {
-    return requestWithoutData({
-        method: "POST",
-        url: "/jwt"
-    })
-}
-
 export async function login(user: UserDTO): Promise<UserData> {
-    return requestWithData<UserData>({
+    const response = await requestWithData<UserData & { jwt?: string }>({
         method: "POST",
         url: "/login",
         data: user
-    })
+    });
+
+    if ('jwt' in response && response.jwt) {
+        setJwtToken(response.jwt);
+    }
+
+    return response;
 }
 
 export async function logout(): Promise<string> {
@@ -98,6 +111,7 @@ export async function init() {
         if (!hasCsrfToken()) await axios.get("/api/csrf", {withCredentials: true});
         attachCsrfInterceptor();
     } else if (config === 'jwt') {
+        attachJwtInterceptor();
     } else if (config === 'oauth') {
     } else {
         console.error('init broken!!')
@@ -113,4 +127,17 @@ const attachCsrfInterceptor = () => {
         }
         return config;
     });
+};
+
+const attachJwtInterceptor = () => {
+    client.interceptors.response.use(
+        (response) => response,
+        (error: AxiosError) => {
+            if (error.response?.status === 401 && jwtToken) {
+                clearJwtToken();
+                window.dispatchEvent(new CustomEvent('logout'));
+            }
+            throw error;
+        }
+    );
 };

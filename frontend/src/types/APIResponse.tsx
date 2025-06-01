@@ -7,6 +7,7 @@ export interface APIResponse<T = never> {
 export interface UserData {
     email: string;
     roles: string[];
+    jwt?: string;
 }
 
 export type AuthType = "jwt" | "session" | "oauth" | null;
