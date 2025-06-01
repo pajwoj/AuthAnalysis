@@ -13,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 import pl.pajwoj.jwt.JWTAuthenticationFilter;
+import pl.pajwoj.jwt.JWTTokenProvider;
 import pl.pajwoj.responses.APIResponse;
 
 @ConditionalOnProperty(name = "auth.type", havingValue = "jwt")
@@ -21,6 +22,7 @@ import pl.pajwoj.responses.APIResponse;
 @RequiredArgsConstructor
 public class JWTSecurityConfig {
     private final JWTAuthenticationFilter jwtAuthenticationFilter;
+    private final JWTTokenProvider jwtTokenProvider;
     private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
@@ -53,7 +55,20 @@ public class JWTSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .formLogin(AbstractHttpConfigurer::disable)
-                .logout(AbstractHttpConfigurer::disable)
+
+                .logout(logout -> logout
+                        .logoutUrl("/api/logout")
+                        .addLogoutHandler((request, response, authentication) -> {
+                            String token = request.getHeader("Authorization").substring(7);
+                            jwtTokenProvider.blacklistToken(token);
+                        })
+
+                        .logoutSuccessHandler((request, response, auth) -> {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            response.setContentType("application/json");
+                            response.getWriter().write(APIResponse.json("Logout successful"));
+                        })
+                )
 
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         ;

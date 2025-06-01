@@ -162,14 +162,6 @@ public class UserService {
         }
     }
 
-    @ConditionalOnProperty(name = "auth.type", havingValue = "jwt")
-    public ResponseEntity<?> JWTLogout() {
-        return ResponseEntity
-                .ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(APIResponse.of("Logout successful"));
-    }
-
     public ResponseEntity<?> getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 

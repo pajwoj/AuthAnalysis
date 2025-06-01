@@ -23,12 +23,15 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @ConditionalOnProperty(name = "auth.type", havingValue = "jwt")
 @Component
 public class JWTTokenProvider {
 
+    private final Set<String> blacklistedTokens = ConcurrentHashMap.newKeySet();
     private SecretKey secretKey;
 
     @PostConstruct
@@ -71,10 +74,21 @@ public class JWTTokenProvider {
         return extractClaims(token).getSubject();
     }
 
+    public void blacklistToken(String token) {
+        blacklistedTokens.add(token);
+    }
+
+    public boolean isBlacklisted(String token) {
+        return blacklistedTokens.contains(token);
+    }
+
     public boolean validateToken(String token, HttpServletRequest request) {
-        if (token == null || token.trim().isEmpty()) {
+        if (token == null || token.trim().isEmpty())
             return false;
-        }
+
+
+        if (isBlacklisted(token))
+            return false;
 
         try {
             Claims claims = extractClaims(token);

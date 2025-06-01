@@ -33,9 +33,4 @@ public class JWTController {
     public ResponseEntity<?> login(@RequestBody UserDTO userDTO, HttpServletResponse response, HttpServletRequest request) {
         return userService.JWTLogin(userDTO, response, request);
     }
-
-    @PostMapping(value = "/logout", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> logout() {
-        return userService.JWTLogout();
-    }
 }
