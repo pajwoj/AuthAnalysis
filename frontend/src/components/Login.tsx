@@ -37,40 +37,69 @@ export default function Login() {
     };
 
     return (
-        <div>
-            <h1>Login</h1>
+        <div className="container mt-5">
+            <div className="row justify-content-center">
+                <div className="col-md-6 col-lg-4">
+                    <div className="card shadow">
+                        <div className="card-body">
+                            <h1 className="card-title text-center mb-4">Login</h1>
 
-            <form onSubmit={onSubmit}>
-                <div>
-                    <label htmlFor="email">Email</label>
-                    <input
-                        id="email"
-                        type="text"
-                        value={email}
-                        onChange={(e) => {
-                            setEmail(e.target.value);
-                        }}
-                        required
-                    />
+                            <form onSubmit={onSubmit}>
+                                <div className="mb-3">
+                                    <label htmlFor="email" className="form-label">
+                                        Email
+                                    </label>
+                                    <input
+                                        id="email"
+                                        className="form-control"
+                                        value={email}
+                                        onChange={(e) => {
+                                            setEmail(e.target.value);
+                                        }}
+                                        placeholder="Enter your email"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <label htmlFor="password" className="form-label">
+                                        Password
+                                    </label>
+                                    <input
+                                        id="password"
+                                        type="password"
+                                        className="form-control"
+                                        value={password}
+                                        onChange={(e) => {
+                                            setPassword(e.target.value);
+                                        }}
+                                        placeholder="Enter your password"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="d-grid">
+                                    <button
+                                        type="submit"
+                                        className={`btn btn-primary btn-lg ${loading ? 'disabled' : ''}`}
+                                        disabled={loading}
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <span className="spinner-border spinner-border-sm me-2" role="status"
+                                                      aria-hidden="true"></span>
+                                                Logging in...
+                                            </>
+                                        ) : (
+                                            "Login"
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-
-                <div>
-                    <label htmlFor="password">Password</label>
-                    <input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => {
-                            setPassword(e.target.value);
-                        }}
-                        required
-                    />
-                </div>
-
-                <button type="submit" disabled={loading}>
-                    {loading ? "Logging in..." : "Login"}
-                </button>
-            </form>
+            </div>
         </div>
     );
 }

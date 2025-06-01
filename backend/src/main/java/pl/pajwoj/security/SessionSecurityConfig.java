@@ -59,7 +59,7 @@ public class SessionSecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/login", "/api/logout", "/api/user", "/api/csrf", "/api/config", "/api/protected").permitAll()
-                        .anyRequest().authenticated())
+                        .anyRequest().denyAll())
 
                 .sessionManagement(session -> session
                         .maximumSessions(1)
