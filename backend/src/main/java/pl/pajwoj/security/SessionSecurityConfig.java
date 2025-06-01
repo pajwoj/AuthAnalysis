@@ -37,7 +37,7 @@ public class SessionSecurityConfig {
         cookieSerializer.setUseHttpOnlyCookie(true);
         cookieSerializer.setUseSecureCookie(true);
         cookieSerializer.setSameSite("Strict");
-        cookieSerializer.setCookieMaxAge(60 * 60 * 24 * 7);
+        cookieSerializer.setCookieMaxAge(60 * 15);
 
         return cookieSerializer;
     }
