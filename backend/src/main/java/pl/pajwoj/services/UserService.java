@@ -31,19 +31,31 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JWTTokenProvider jwtTokenProvider;
+    private final LoginAttemptService loginAttemptService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, Optional<AuthenticationManager> authenticationManager, Optional<JWTTokenProvider> jwtTokenProvider) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, Optional<AuthenticationManager> authenticationManager, Optional<JWTTokenProvider> jwtTokenProvider, LoginAttemptService loginAttemptService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager.orElse(null);
         this.jwtTokenProvider = jwtTokenProvider.orElse(null);
+        this.loginAttemptService = loginAttemptService;
     }
 
     @ConditionalOnProperty(name = "auth.type", havingValue = "session")
     public ResponseEntity<?> sessionLogin(UserDTO userDTO, HttpServletRequest request) {
+        if (loginAttemptService.isBlocked(userDTO.getEmail())) {
+            return ResponseEntity
+                    .status(HttpStatus.TOO_MANY_REQUESTS)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("Account temporarily locked due to too many failed attempts. Try again in "
+                            + loginAttemptService.getMinutesUntilUnlock(userDTO.getEmail())
+                            + " minutes."));
+        }
+
         Optional<User> optionalUser = userRepository.findByEmail(userDTO.getEmail());
 
         if (optionalUser.isEmpty()) {
+            loginAttemptService.loginFailed(userDTO.getEmail());
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -55,6 +67,8 @@ public class UserService {
                     new UsernamePasswordAuthenticationToken(userDTO.getEmail(), userDTO.getPassword());
 
             Authentication authentication = authenticationManager.authenticate(authRequest);
+
+            loginAttemptService.loginSucceeded(userDTO.getEmail());
 
             SecurityContext sc = SecurityContextHolder.getContext();
             sc.setAuthentication(authentication);
@@ -72,11 +86,13 @@ public class UserService {
                                     .toList()
                     )));
         } catch (BadCredentialsException e) {
+            loginAttemptService.loginFailed(userDTO.getEmail());
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(APIResponse.of("Invalid email or password"));
         } catch (Exception e) {
+            loginAttemptService.loginFailed(userDTO.getEmail());
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -160,7 +176,7 @@ public class UserService {
     }
 
     public ResponseEntity<?> getCurrentUser() {
-        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
 //        if (context == null || context.getAuthentication() == null || !context.getAuthentication().isAuthenticated() || "anonymousUser".equals(context.getAuthentication().getPrincipal()))
 //            return ResponseEntity
@@ -171,9 +187,9 @@ public class UserService {
         return ResponseEntity
                 .ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(APIResponse.of("Login successful", Map.of(
-                        "email", context.getAuthentication().getName(),
-                        "roles", context.getAuthentication().getAuthorities()
+                .body(APIResponse.of("Fetched user", Map.of(
+                        "email", auth.getName(),
+                        "roles", auth.getAuthorities()
                                 .stream()
                                 .map(GrantedAuthority::getAuthority)
                                 .toList()
