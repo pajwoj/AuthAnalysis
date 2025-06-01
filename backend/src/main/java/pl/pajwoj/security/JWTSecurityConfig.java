@@ -1,5 +1,6 @@
 package pl.pajwoj.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -11,8 +12,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
-import pl.pajwoj.jwt.JWTAuthenticationEntryPoint;
 import pl.pajwoj.jwt.JWTAuthenticationFilter;
+import pl.pajwoj.responses.APIResponse;
 
 @ConditionalOnProperty(name = "auth.type", havingValue = "jwt")
 @Configuration
@@ -20,7 +21,6 @@ import pl.pajwoj.jwt.JWTAuthenticationFilter;
 @RequiredArgsConstructor
 public class JWTSecurityConfig {
     private final JWTAuthenticationFilter jwtAuthenticationFilter;
-    private final JWTAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
@@ -30,12 +30,24 @@ public class JWTSecurityConfig {
 
                 .csrf(AbstractHttpConfigurer::disable)
 
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint))
-
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/login", "/api/user", "/api/config", "/api/logout", "/api/protected").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/login", "/api/csrf", "/api/config", "/api/logout").permitAll()
+                        .requestMatchers("/api/user").authenticated()
+                        .requestMatchers("/api/protected").hasAuthority("SECRET")
+                        .anyRequest().denyAll())
+
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write(APIResponse.json("You are not logged in"));
+                        })
+
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write(APIResponse.json("Only admins can access this page"));
+                        }))
 
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

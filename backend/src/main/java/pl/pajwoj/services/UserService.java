@@ -3,7 +3,9 @@ package pl.pajwoj.services;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,7 +23,6 @@ import pl.pajwoj.models.UserAuthority;
 import pl.pajwoj.repositories.UserRepository;
 import pl.pajwoj.responses.APIResponse;
 
-import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
@@ -102,10 +103,20 @@ public class UserService {
     }
 
     @ConditionalOnProperty(name = "auth.type", havingValue = "jwt")
-    public ResponseEntity<?> JWTLogin(UserDTO userDTO, HttpServletResponse response) {
+    public ResponseEntity<?> JWTLogin(UserDTO userDTO, HttpServletResponse response, HttpServletRequest request) {
+        if (loginAttemptService.isBlocked(userDTO.getEmail())) {
+            return ResponseEntity
+                    .status(HttpStatus.TOO_MANY_REQUESTS)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(APIResponse.of("Account temporarily locked due to too many failed attempts. Try again in "
+                            + loginAttemptService.getMinutesUntilUnlock(userDTO.getEmail())
+                            + " minutes."));
+        }
+
         Optional<User> optionalUser = userRepository.findByEmail(userDTO.getEmail());
 
         if (optionalUser.isEmpty()) {
+            loginAttemptService.loginFailed(userDTO.getEmail());
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -118,38 +129,32 @@ public class UserService {
 
             Authentication authentication = authenticationManager.authenticate(authRequest);
 
+            loginAttemptService.loginSucceeded(userDTO.getEmail());
+
             SecurityContext sc = SecurityContextHolder.getContext();
             sc.setAuthentication(authentication);
 
-            String jwt = jwtTokenProvider.generateToken(authentication);
-
-            ResponseCookie cookie = ResponseCookie.from("JWT", jwt)
-                    .path("/")
-                    .maxAge(Duration.ofMinutes(15).toSeconds())
-                    .secure(true)
-                    .httpOnly(true)
-                    .sameSite("Strict")
-                    .build();
-
-            response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            String jwt = jwtTokenProvider.generateToken(authentication, request);
 
             return ResponseEntity
                     .ok()
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt)
                     .body(APIResponse.of("Login successful", Map.of(
                             "email", authentication.getName(),
                             "roles", authentication.getAuthorities()
                                     .stream()
                                     .map(GrantedAuthority::getAuthority)
-                                    .toList()
+                                    .toList(),
+                            "jwt", jwt
                     )));
         } catch (BadCredentialsException e) {
+            loginAttemptService.loginFailed(userDTO.getEmail());
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(APIResponse.of("Invalid email or password"));
         } catch (Exception e) {
+            loginAttemptService.loginFailed(userDTO.getEmail());
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -158,18 +163,7 @@ public class UserService {
     }
 
     @ConditionalOnProperty(name = "auth.type", havingValue = "jwt")
-    public ResponseEntity<?> JWTLogout(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from("JWT", "")
-                .path("/")
-                .maxAge(0)
-                .secure(true)
-                .httpOnly(true)
-                .sameSite("Strict")
-                .build();
-
-        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        response.setHeader("Clear-Site-Data", "\"cookies\"");
-
+    public ResponseEntity<?> JWTLogout() {
         return ResponseEntity
                 .ok()
                 .contentType(MediaType.APPLICATION_JSON)

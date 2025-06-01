@@ -1,5 +1,6 @@
 package pl.pajwoj.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -29,12 +30,12 @@ public class JWTController {
     }
 
     @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> login(@RequestBody UserDTO userDTO, HttpServletResponse response) {
-        return userService.JWTLogin(userDTO, response);
+    public ResponseEntity<?> login(@RequestBody UserDTO userDTO, HttpServletResponse response, HttpServletRequest request) {
+        return userService.JWTLogin(userDTO, response, request);
     }
 
     @PostMapping(value = "/logout", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> logout(HttpServletResponse response) {
-        return userService.JWTLogout(response);
+    public ResponseEntity<?> logout() {
+        return userService.JWTLogout();
     }
 }
