@@ -58,8 +58,24 @@ public class SessionSecurityConfig {
                         .ignoringRequestMatchers("/api/csrf"))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/login", "/api/logout", "/api/user", "/api/csrf", "/api/config", "/api/protected").permitAll()
+                        .requestMatchers("/api/login", "/api/csrf", "/api/config", "/api/logout").permitAll()
+                        .requestMatchers("/api/user").authenticated()
+                        .requestMatchers("/api/protected").hasAuthority("SECRET")
                         .anyRequest().denyAll())
+
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write(APIResponse.json("You are not logged in"));
+                        })
+
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write(APIResponse.json("Only admins can access this page"));
+                        })
+                )
 
                 .sessionManagement(session -> session
                         .maximumSessions(1)
@@ -69,7 +85,7 @@ public class SessionSecurityConfig {
 
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
-                            response.getWriter().write(APIResponse.json("Session expired! Log in again. Redirecting to homepage..."));
+                            response.getWriter().write(APIResponse.json("Session expired! Log in again."));
                         })
                         .sessionRegistry(null)
                 )

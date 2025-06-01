@@ -9,7 +9,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -109,7 +108,7 @@ public class UserService {
 
             ResponseCookie cookie = ResponseCookie.from("JWT", jwt)
                     .path("/")
-                    .maxAge(Duration.ofDays(7).toSeconds())
+                    .maxAge(Duration.ofMinutes(15).toSeconds())
                     .secure(true)
                     .httpOnly(true)
                     .sameSite("Strict")
@@ -163,11 +162,11 @@ public class UserService {
     public ResponseEntity<?> getCurrentUser() {
         SecurityContext context = SecurityContextHolder.getContext();
 
-        if (context == null || context.getAuthentication() == null || !context.getAuthentication().isAuthenticated() || "anonymousUser".equals(context.getAuthentication().getPrincipal()))
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(APIResponse.of("You are not logged in"));
+//        if (context == null || context.getAuthentication() == null || !context.getAuthentication().isAuthenticated() || "anonymousUser".equals(context.getAuthentication().getPrincipal()))
+//            return ResponseEntity
+//                    .status(HttpStatus.UNAUTHORIZED)
+//                    .contentType(MediaType.APPLICATION_JSON)
+//                    .body(APIResponse.of("You are not logged in"));
 
         return ResponseEntity
                 .ok()
@@ -215,21 +214,21 @@ public class UserService {
     public ResponseEntity<?> secret() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority("SECRET")))
-            return ResponseEntity
-                    .ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(APIResponse.of("Permitted", Map.of(
-                            "email", auth.getName(),
-                            "roles", auth.getAuthorities()
-                                    .stream()
-                                    .map(GrantedAuthority::getAuthority)
-                                    .toList()
-                    )));
+//        if (auth == null || !auth.getAuthorities().contains(new SimpleGrantedAuthority("SECRET")))
+//            return ResponseEntity
+//                    .status(HttpStatus.FORBIDDEN)
+//                    .contentType(MediaType.APPLICATION_JSON)
+//                    .body(APIResponse.of("Only admins can access this page"));
 
         return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
+                .ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(APIResponse.of("Only admins can access this page"));
+                .body(APIResponse.of("Permitted", Map.of(
+                        "email", auth.getName(),
+                        "roles", auth.getAuthorities()
+                                .stream()
+                                .map(GrantedAuthority::getAuthority)
+                                .toList()
+                )));
     }
 }

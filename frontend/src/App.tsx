@@ -33,7 +33,7 @@ export default function App() {
                         <Route path="/protected" element={<Protected/>}/>
                     </Routes>
                 </BrowserRouter>
-                <Toaster position="top-center"/>
+                <Toaster position="top-right"/>
             </AuthContext>
         </>
     );
