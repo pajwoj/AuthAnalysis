@@ -74,20 +74,19 @@ public class SessionSecurityConfig {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType("application/json");
                             response.getWriter().write(APIResponse.json("Only admins can access this page"));
-                        })
-                )
+                        }))
 
                 .sessionManagement(session -> session
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false)
+                        .sessionRegistry(null)
                         .expiredSessionStrategy((event) -> {
                             val response = event.getResponse();
 
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
-                            response.getWriter().write(APIResponse.json("Session expired! Log in again."));
+                            response.getWriter().write(APIResponse.json("Session expired, log in again."));
                         })
-                        .sessionRegistry(null)
                 )
 
                 .formLogin(AbstractHttpConfigurer::disable)
