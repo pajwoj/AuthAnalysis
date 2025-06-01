@@ -74,6 +74,7 @@ public class UserService {
             sc.setAuthentication(authentication);
 
             request.getSession(true).setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, sc);
+            request.getSession().setAttribute("USER_AGENT", request.getHeader("User-Agent"));
 
             return ResponseEntity
                     .ok()
