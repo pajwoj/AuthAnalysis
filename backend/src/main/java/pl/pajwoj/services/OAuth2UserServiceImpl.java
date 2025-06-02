@@ -27,8 +27,7 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         if (oAuth2User.getAttribute("email") == null)
-            throw new OAuth2AuthenticationException("The email address could not be verified, check your profile settings at the provider you used.");
-        
+            throw new OAuth2AuthenticationException("The email address could not be verified.");
 
         return userRepository.findByEmail(oAuth2User.getAttribute("email"))
                 .orElseGet(() -> userRepository.save(new User(
