@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.cors.CorsConfigurationSource;
 import pl.pajwoj.responses.APIResponse;
 import pl.pajwoj.services.OAuth2UserServiceImpl;
@@ -32,8 +32,23 @@ public class OAuthSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/user", "/api/config", "/api/logout", "/api/protected", "/login/oauth2/code/**", "/oauth2/authorization/**").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/login", "/api/csrf", "/api/config", "/api/logout", "/oauth2/authorization/**", "/login/oauth2/code/**").permitAll()
+                        .requestMatchers("/api/user").authenticated()
+                        .requestMatchers("/api/protected").hasAuthority("SECRET")
+                        .anyRequest().denyAll())
+
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write(APIResponse.json("You are not logged in"));
+                        })
+
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write(APIResponse.json("Only admins can access this page"));
+                        }))
 
                 .formLogin(AbstractHttpConfigurer::disable)
 
@@ -46,22 +61,22 @@ public class OAuthSecurityConfig {
                             response.sendRedirect("http://localhost:5173/");
                         })
                         .failureHandler((request, response, exception) -> {
-                            System.out.println("fail!");
                             response.sendRedirect("http://localhost:5173/");
                         })
                 )
 
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+
                 .logout(logout -> logout
                         .logoutUrl("/api/logout")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .addLogoutHandler(new SecurityContextLogoutHandler())
                         .logoutSuccessHandler((request, response, auth) -> {
-                            response.setHeader("Clear-Site-Data", "\"cookies\"");
                             response.setStatus(HttpServletResponse.SC_OK);
                             response.setContentType("application/json");
                             response.getWriter().write(APIResponse.json("Logout successful"));
                         })
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
                 )
         ;
 
