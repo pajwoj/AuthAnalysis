@@ -104,7 +104,7 @@ const hasCsrfToken = () =>
 export async function init() {
     const config = await getConfig();
 
-    if (config === 'session') {
+    if (config === 'session' || config === 'oauth') {
         client.defaults.xsrfCookieName = "XSRF-TOKEN";
         client.defaults.xsrfHeaderName = "X-XSRF-TOKEN";
 
@@ -112,7 +112,6 @@ export async function init() {
         attachCsrfInterceptor();
     } else if (config === 'jwt') {
         attachJwtInterceptor();
-    } else if (config === 'oauth') {
     } else {
         console.error('init broken!!')
     }

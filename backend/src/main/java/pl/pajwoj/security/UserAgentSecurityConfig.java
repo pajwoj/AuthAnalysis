@@ -17,11 +17,16 @@ public class UserAgentSecurityConfig extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
-        if (requestURI.equals("/api/login") || requestURI.equals("/api/csrf") || requestURI.equals("/api/config") || requestURI.equals("/api/logout")) {
+        if (requestURI.equals("/api/login") ||
+                requestURI.equals("/api/csrf") ||
+                requestURI.equals("/api/config") ||
+                requestURI.equals("/api/logout") ||
+                requestURI.equals("/oauth2/authorization/**") ||
+                requestURI.equals("/login/oauth2/code/**")) {
             filterChain.doFilter(request, response);
             return;
         }
-
+        
         HttpSession session = request.getSession(false);
 
         if (session != null && session.getAttribute("USER_AGENT") != null) {
