@@ -70,7 +70,6 @@ public class OAuthSecurityConfig {
 
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, accessDeniedException) -> {
-                            System.out.println(accessDeniedException.toString());
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
                             response.getWriter().write(APIResponse.json("You are not logged in"));
