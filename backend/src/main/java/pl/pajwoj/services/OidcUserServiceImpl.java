@@ -26,6 +26,10 @@ public class OidcUserServiceImpl extends OidcUserService {
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
         OidcUser oidcUser = super.loadUser(userRequest);
 
+        if (oidcUser.getAttribute("email") == null)
+            throw new OAuth2AuthenticationException("The email address could not be verified, check your profile settings at the provider you used.");
+
+
         return userRepository.findByEmail(oidcUser.getEmail())
                 .orElseGet(() -> {
                     User u = new User(
